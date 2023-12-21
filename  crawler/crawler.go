@@ -20,6 +20,7 @@ func getSiteHtml(url string) ([]byte, error) {
 		return nil, err
 	}
 	body, err := io.ReadAll(resp.Body)
+	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -27,6 +28,5 @@ func getSiteHtml(url string) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, err
 	}
-	defer resp.Body.Close()
 	return body, nil
 }
