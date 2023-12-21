@@ -6,6 +6,12 @@ import (
 	"net/http"
 )
 
+type Article struct {
+	Url     string
+	Header  string
+	Content []string
+}
+
 func getSiteHtml(url string) ([]byte, error) {
 	log.SetPrefix("network GetSiteHtml: ")
 	log.SetFlags(0)
@@ -22,10 +28,4 @@ func getSiteHtml(url string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 	return body, nil
-}
-
-type Article struct {
-	url     string
-	header  string
-	content []string
 }
