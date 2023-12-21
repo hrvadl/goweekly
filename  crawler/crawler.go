@@ -23,7 +23,8 @@ func getSiteHtml(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode > 299 {
+
+	if resp.StatusCode != http.StatusOK {
 		return nil, err
 	}
 	defer resp.Body.Close()
