@@ -12,7 +12,7 @@ type Article struct {
 	Content []string
 }
 
-func getSiteHtml(url string) ([]byte, error) {
+func getSiteHTML(url string) ([]byte, error) {
 	log.SetPrefix("network GetSiteHtml: ")
 	log.SetFlags(0)
 	resp, err := http.Get(url)
