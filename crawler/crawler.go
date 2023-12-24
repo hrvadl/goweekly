@@ -120,7 +120,7 @@ func processArticle(tokenizer *html.Tokenizer) (Article, error) {
 
 			if title {
 				article.Header = string(text)
-				fmt.Printf("header: %v\n", text)
+				fmt.Printf("header: %v\n", article.Header)
 				title = false
 				continue
 			}
