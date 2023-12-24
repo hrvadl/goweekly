@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -114,13 +113,13 @@ func processArticle(tokenizer *html.Tokenizer) (Article, error) {
 				return article, nil
 			}
 		case html.TextToken:
-			text := strings.TrimSpace(string(tokenizer.Text()))
-			if text == "" {
+			text := bytes.TrimSpace(tokenizer.Text())
+			if len(text) == 0 {
 				break
 			}
 
 			if title {
-				article.Header = text
+				article.Header = string(text)
 				fmt.Printf("header: %v\n", text)
 				title = false
 				continue
