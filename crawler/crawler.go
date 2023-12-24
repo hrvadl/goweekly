@@ -132,18 +132,19 @@ func processArticle(tokenizer *html.Tokenizer) (Article, error) {
 				article.Header = text
 				fmt.Printf("header: %v\n", text)
 				title = false
-			} else {
-				if article.Content == nil {
-					currentContent = 0
-					article.Content = make([]string, 5)
-				}
-				if currentContent < len(article.Content) {
-					article.Content[currentContent] = string(text)
-				} else {
-					article.Content = append(article.Content, string(text))
-				}
-				currentContent++
+				continue
 			}
+
+			if article.Content == nil {
+				currentContent = 0
+				article.Content = make([]string, 5)
+			}
+			if currentContent < len(article.Content) {
+				article.Content[currentContent] = string(text)
+			} else {
+				article.Content = append(article.Content, string(text))
+			}
+			currentContent++
 		}
 	}
 }
