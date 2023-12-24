@@ -22,6 +22,17 @@ type Article struct {
 	IsSponsored bool
 }
 
+/*
+Extracts Article's fields from tokens
+
+	If HTML was parsed with getArticleFromStream()
+	token slice order should be like this:
+	n := len(tokens)
+	tokens[0] - URL
+	tokens[1] - Article header
+	tokens[2]:token[n-1] - Content
+	tokens[n-1] - Author or Sponsored label *
+*/
 func newArticleFromTextTokens(tokens []string) (*Article, error) {
 	length := len(tokens)
 	if length < minTokens {

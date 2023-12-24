@@ -59,6 +59,12 @@ type Crawler struct {
 	client    *http.Client
 }
 
+/*
+Fetches and parses the articles
+
+Articles is contained in tables with class 'el-item item  '.
+They have same structure regardless of content table > tbody > tr > td > (content)
+*/
 func (c *Crawler) ParseArticles() ([]Article, error) {
 	siteHTML, err := c.getHTMLStream()
 	if err != nil {
@@ -69,8 +75,6 @@ func (c *Crawler) ParseArticles() ([]Article, error) {
 	c.tokenizer = html.NewTokenizer(siteHTML)
 	articles := make([]Article, 0, maxArticlesPerWeek)
 
-	// articles is contained in tables with class 'el-item item  '
-	// they have same structure regardless of content table > tbody > tr > td > (content)
 	for {
 		ok, err := c.findTokenByAttr(classAttrName, tableClasses)
 		if err != nil {
@@ -94,6 +98,12 @@ func (c *Crawler) ParseArticles() ([]Article, error) {
 	return articles, nil
 }
 
+/*
+Moves the tokenizer cursor to the element
+
+which matches the provided attribute name
+and attribute class
+*/
 func (c *Crawler) findTokenByAttr(attrName []byte, attrValue []byte) (bool, error) {
 	for c.tokenizer.Err() == nil {
 		if c.tokenizer.Next() != html.StartTagToken {
@@ -119,6 +129,12 @@ func (c *Crawler) findTokenByAttr(attrName []byte, attrValue []byte) (bool, erro
 	return false, c.tokenizer.Err()
 }
 
+/*
+Parses tokens from the tokenizer
+
+Tokenizer's cursor should already be on <table> element
+Exits on the EOF exception or on the closing </table> element
+*/
 func (c *Crawler) getArticleFromStream() (*Article, error) {
 	once := sync.Once{}
 	tokens := make([]string, 0, 5)
@@ -166,6 +182,14 @@ func (c *Crawler) getTokensAttr(attrName []byte) []byte {
 	}
 }
 
+/*
+Fetches the given URL and return body stream
+
+In case request is failed retries a couple times specified
+in the config with the provided timeout.
+
+User of this function is ought to close the outgoing stream.
+*/
 func (c *Crawler) getHTMLStream() (io.ReadCloser, error) {
 	var (
 		err error
