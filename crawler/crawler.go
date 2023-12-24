@@ -11,6 +11,9 @@ import (
 	"golang.org/x/net/html"
 )
 
+const classAttribute = "class"
+const articleBlockClass = "el-item item  "
+
 type Article struct {
 	Url     string
 	Header  string
@@ -44,7 +47,7 @@ func GetArticles(url string) ([]Article, error) {
 	for {
 		// articles is contained in tables with class 'el-item item  '
 		// they have same structure regardless of content table > tbody > tr > td > (content)
-		found, err := findTokenByAttribute(tokenizer, "class", "el-item item  ")
+		found, err := findTokenByAttribute(tokenizer, classAttribute, articleBlockClass)
 		if err != nil {
 			return nil, err
 		}
