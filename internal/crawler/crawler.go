@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	tableToken = "table"
-	linkToken  = "a"
+	tableTag = "table"
+	linkTag  = "a"
 )
 
 const maxArticlesPerWeek = 15
@@ -127,7 +127,7 @@ func (c *Crawler) getArticleFromStream() (*Article, error) {
 		switch c.tokenizer.Next() {
 		case html.StartTagToken:
 			tagName, _ := c.tokenizer.TagName()
-			if string(tagName) == linkToken {
+			if string(tagName) == linkTag {
 				once.Do(func() {
 					tokens = append(tokens, string(c.getTokensAttr(hrefAttrName)))
 				})
@@ -135,7 +135,7 @@ func (c *Crawler) getArticleFromStream() (*Article, error) {
 
 		case html.EndTagToken:
 			tagName, _ := c.tokenizer.TagName()
-			if string(tagName) == tableToken {
+			if string(tagName) == tableTag {
 				return newArticleFromTextTokens(tokens)
 			}
 
