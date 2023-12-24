@@ -105,7 +105,6 @@ func processArticle(tokenizer *html.Tokenizer) (Article, error) {
 	article := Article{
 		Content: make([]string, 5),
 	}
-	currentContent := 0
 	title := true
 	for {
 		tokenType := tokenizer.Next()
@@ -135,16 +134,7 @@ func processArticle(tokenizer *html.Tokenizer) (Article, error) {
 				continue
 			}
 
-			if article.Content == nil {
-				currentContent = 0
-				article.Content = make([]string, 5)
-			}
-			if currentContent < len(article.Content) {
-				article.Content[currentContent] = string(text)
-			} else {
-				article.Content = append(article.Content, string(text))
-			}
-			currentContent++
+			article.Content = append(article.Content, string(text))
 		}
 	}
 }
