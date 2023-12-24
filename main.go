@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	arts, err := crawler.CrawlSite("https://golangweekly.com/issues/latest")
+	arts, err := crawler.GetArticles("https://golangweekly.com/issues/latest")
 	if err != nil {
 		fmt.Println(err)
 	}

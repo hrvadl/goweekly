@@ -31,7 +31,7 @@ func getSiteHTML(url string) (io.ReadCloser, error) {
 	return resp.Body, nil
 }
 
-func CrawlSite(url string) ([]Article, error) {
+func GetArticles(url string) ([]Article, error) {
 	siteHTML, err := getSiteHTML(url)
 	defer siteHTML.Close()
 	if err != nil {
