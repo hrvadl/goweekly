@@ -44,7 +44,7 @@ func CrawlSite(url string) ([]Article, error) {
 	// create new reader to close the html body,even if copying is done
 	tokenizer := html.NewTokenizer(bytes.NewReader(siteHTML))
 
-	var articles = make([]Article, 15)
+	articles := make([]Article, 15)
 	currentArticle := 0
 	for {
 		// articles is contained in tables with class 'el-item item  '
@@ -77,8 +77,6 @@ func CrawlSite(url string) ([]Article, error) {
 func findTokenByAttribute(tokenizer *html.Tokenizer, attrName string, attrValue string) (bool, error) {
 	attrNameBytes := []byte(attrName)
 	attrValueBytes := []byte(attrValue)
-	attrNameLength := len(attrNameBytes)
-	attrValueLength := len(attrValueBytes)
 	for {
 		tokenType := tokenizer.Next()
 		switch tokenType {
@@ -90,12 +88,6 @@ func findTokenByAttribute(tokenizer *html.Tokenizer, attrName string, attrValue 
 		case html.StartTagToken:
 			for {
 				attr, value, more := tokenizer.TagAttr()
-				if len(attr) != attrNameLength || len(value) != attrValueLength {
-					if !more {
-						break
-					}
-					continue
-				}
 
 				if bytes.Equal(attr, attrNameBytes) && bytes.Equal(value, attrValueBytes) {
 					return true, nil
