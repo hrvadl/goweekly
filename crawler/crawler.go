@@ -42,7 +42,7 @@ func GetArticles(url string) ([]Article, error) {
 	// create new reader to close the html body,even if copying is done
 	tokenizer := html.NewTokenizer(siteHTML)
 
-	articles := make([]Article, 0)
+	articles := make([]Article, 0, 15)
 	for {
 		// articles is contained in tables with class 'el-item item  '
 		// they have same structure regardless of content table > tbody > tr > td > (content)
@@ -94,7 +94,7 @@ func findTokenByAttribute(tokenizer *html.Tokenizer, attrName string, attrValue 
 
 func processArticle(tokenizer *html.Tokenizer) (Article, error) {
 	article := Article{
-		Content: make([]string, 0),
+		Content: make([]string, 0, 5),
 	}
 	title := true
 	for {
