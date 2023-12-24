@@ -17,15 +17,10 @@ type Article struct {
 	Content []string
 }
 
-func getSiteHTML(url string) ([]byte, error) {
+func getSiteHTML(url string) (io.ReadCloser, error) {
 	log.SetPrefix("network GetSiteHtml: ")
 	log.SetFlags(0)
 	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	body, err := io.ReadAll(resp.Body)
-	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -33,16 +28,17 @@ func getSiteHTML(url string) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, err
 	}
-	return body, nil
+	return resp.Body, nil
 }
 
 func CrawlSite(url string) ([]Article, error) {
 	siteHTML, err := getSiteHTML(url)
+	defer siteHTML.Close()
 	if err != nil {
 		return nil, err
 	}
 	// create new reader to close the html body,even if copying is done
-	tokenizer := html.NewTokenizer(bytes.NewReader(siteHTML))
+	tokenizer := html.NewTokenizer(siteHTML)
 
 	articles := make([]Article, 15)
 	for {
