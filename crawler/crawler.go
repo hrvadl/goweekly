@@ -45,7 +45,6 @@ func CrawlSite(url string) ([]Article, error) {
 	tokenizer := html.NewTokenizer(bytes.NewReader(siteHTML))
 
 	articles := make([]Article, 15)
-	currentArticle := 0
 	for {
 		// articles is contained in tables with class 'el-item item  '
 		// they have same structure regardless of content table > tbody > tr > td > (content)
@@ -58,18 +57,12 @@ func CrawlSite(url string) ([]Article, error) {
 			break
 		}
 
-		fmt.Printf("article %v\n", currentArticle+1)
 		article, err := processArticle(tokenizer)
 		if err != nil {
 			return nil, err
 		}
 
-		if currentArticle < len(articles) {
-			articles[currentArticle] = article
-		} else {
-			articles = append(articles, article)
-		}
-		currentArticle++
+		articles = append(articles, article)
 	}
 	return articles, nil
 }
