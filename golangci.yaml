@@ -1,0 +1,28 @@
+linters:
+  enable:
+    # FAST
+    - nestif
+    - funlen
+    - lll
+    - forcetypeassert
+    # MANDATORY HEAVY
+    - govet
+    - staticcheck
+    # OPTIONAL HEAVY
+    - revive
+    - tparallel
+    - errorlint
+    - exportloopref
+    - cyclop
+    - unparam
+    - unused
+    - errcheck
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - funlen
+        - cyclop
+        - lll
