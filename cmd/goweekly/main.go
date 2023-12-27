@@ -1,9 +1,12 @@
 package main
 
 import (
+	"os"
 	"time"
 
 	"github.com/hrvadl/go-weekly/internal/crawler"
+	"github.com/hrvadl/go-weekly/internal/tg"
+	"github.com/hrvadl/go-weekly/internal/tg/formatter"
 	"github.com/hrvadl/go-weekly/internal/translator"
 	"github.com/hrvadl/go-weekly/pkg/logger"
 )
@@ -21,9 +24,16 @@ const (
 	translateTimeout       = 10 * time.Second
 )
 
+const (
+	tgTokenKey = "TG_TOKEN"
+	tgChatID   = "@goweeklych"
+)
+
 func main() {
 	start := time.Now()
 	crawler := crawler.New(articlesURL, articlesTimeout, articlesRetries)
+	bot := tg.NewBot(tg.URL, os.Getenv(tgTokenKey), tgChatID)
+	formatter := formatter.NewMarkdownV2()
 	translator := translator.NewLingvaClient(&translator.Config{
 		Timeout:         translateTimeout,
 		Retries:         translateRetries,
@@ -53,4 +63,7 @@ func main() {
 		time.Since(start).String(),
 		articles,
 	)
+
+	formatted := formatter.FormatArticles(articles)
+	bot.SendMessagesThroughoutWeek(formatted)
 }

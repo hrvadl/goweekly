@@ -66,11 +66,14 @@ func (c *LingvaClient) Translate(msg string) (string, error) {
 	req.Header.Add("Content-Type", "application/json")
 
 	for i := 0; i <= c.Retries; i++ {
-		logger.Info("starting request")
 		res, err = c.client.Do(req)
-		if err != nil || (res != nil && res.StatusCode != http.StatusOK) {
-			logger.Errorf("failed to translate, status: %v, err: %v", res.StatusCode, err)
+		if err != nil {
 			time.Sleep(c.RetriesInterval)
+			continue
+		}
+
+		if res.StatusCode != http.StatusOK {
+			logger.Errorf("failed to translate, status: %v, err: %v", res.StatusCode, err)
 			continue
 		}
 

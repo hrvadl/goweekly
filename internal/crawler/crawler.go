@@ -190,7 +190,12 @@ func (c *Crawler) getHTMLStream() (io.ReadCloser, error) {
 
 	for i := 0; i < int(c.Retries); i++ {
 		res, err = c.client.Do(req)
-		if err != nil || (res != nil && res.StatusCode != http.StatusOK) {
+		if err != nil {
+			time.Sleep(c.RetriesInterval)
+			continue
+		}
+
+		if res.StatusCode != http.StatusOK {
 			err = fmt.Errorf("failed to get site HTML, status: %v, err: %w", res.StatusCode, err)
 			time.Sleep(c.RetriesInterval)
 			continue
