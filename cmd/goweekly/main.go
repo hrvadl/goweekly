@@ -15,17 +15,21 @@ const (
 )
 
 const (
-	translateRetries         = 5
-	translateTimeout         = 40 * time.Second
-	translateRetiresInterval = 40 * time.Second
+	translateRetries       = 5
+	translateBatchRequests = 7
+	translateInterval      = 10 * time.Second
+	translateTimeout       = 10 * time.Second
 )
 
 func main() {
+	start := time.Now()
 	crawler := crawler.New(articlesURL, articlesTimeout, articlesRetries)
 	translator := translator.NewLingvaClient(&translator.Config{
 		Timeout:         translateTimeout,
 		Retries:         translateRetries,
-		RetriesInterval: translateRetiresInterval,
+		RetriesInterval: translateInterval / 2,
+		BatchRequests:   translateBatchRequests,
+		BatchInterval:   translateInterval,
 		URL:             translator.LingvaAPIURL,
 	})
 
@@ -34,11 +38,19 @@ func main() {
 		logger.Fatalf("Cannot parse articles: %v\n", err)
 	}
 
-	logger.Infof("Successfully parsed articles: %v\n", articles)
+	logger.Infof(
+		"Successfully parsed articles in %v: %v\n",
+		time.Since(start).String(),
+		articles,
+	)
 
 	if err := translator.TranslateArticles(articles); err != nil {
 		logger.Fatalf("Failed to translate articles: %v\n", err)
 	}
 
-	logger.Infof("Successfully translated articles: %v\n", articles)
+	logger.Infof(
+		"Successfully translated articles in %v: %v\n",
+		time.Since(start).String(),
+		articles,
+	)
 }

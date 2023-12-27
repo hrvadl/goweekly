@@ -2,26 +2,32 @@ package translator
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/hrvadl/go-weekly/internal/crawler"
+	"github.com/hrvadl/go-weekly/pkg/logger"
 )
 
 const LingvaAPIURL = "https://lingva.ml/api/v1/en/uk/"
 
 type Config struct {
-	Timeout         time.Duration
+	URL             string
+	BatchRequests   int
 	Retries         int
 	RetriesInterval time.Duration
-	URL             string
+	BatchInterval   time.Duration
+	Timeout         time.Duration
 }
 
 func NewLingvaClient(cfg *Config) *LingvaClient {
 	return &LingvaClient{
+		BatchRequests:   cfg.BatchRequests,
+		BatchInterval:   cfg.BatchInterval,
 		Retries:         cfg.Retries,
 		RetriesInterval: cfg.RetriesInterval,
 		url:             cfg.URL,
@@ -36,8 +42,10 @@ type LingvaResponse struct {
 }
 
 type LingvaClient struct {
+	BatchRequests   int
 	Retries         int
 	RetriesInterval time.Duration
+	BatchInterval   time.Duration
 
 	client *http.Client
 	url    string
@@ -58,9 +66,10 @@ func (c *LingvaClient) Translate(msg string) (string, error) {
 	req.Header.Add("Content-Type", "application/json")
 
 	for i := 0; i <= c.Retries; i++ {
+		logger.Info("starting request")
 		res, err = c.client.Do(req)
 		if err != nil || (res != nil && res.StatusCode != http.StatusOK) {
-			err = fmt.Errorf("failed to translate, status: %v, err: %w", res.StatusCode, err)
+			logger.Errorf("failed to translate, status: %v, err: %v", res.StatusCode, err)
 			time.Sleep(c.RetriesInterval)
 			continue
 		}
@@ -85,16 +94,49 @@ func (c *LingvaClient) Translate(msg string) (string, error) {
 	return "", err
 }
 
-// NOTE: This function MUST be sync, without any goroutines
-// because we're getting 429 otherwise
 func (c *LingvaClient) TranslateArticles(articles []crawler.Article) error {
+	var (
+		wg     sync.WaitGroup
+		errCh  = make(chan error, len(articles))
+		doneCh = make(chan struct{}, c.BatchRequests)
+	)
+
 	for i := 0; i < len(articles); i++ {
-		translated, err := c.Translate(articles[i].Content)
-		if err != nil {
-			return err
+		if c.isStartOfTheChunk(i) {
+			c.waitForPreviousBatch(doneCh)
 		}
-		articles[i].Content = translated
+
+		wg.Add(1)
+		go func(article *crawler.Article) {
+			defer wg.Done()
+			translated, err := c.Translate(article.Content)
+			doneCh <- struct{}{}
+
+			if err != nil {
+				errCh <- err
+			}
+
+			article.Content = translated
+		}(&articles[i])
 	}
 
-	return nil
+	wg.Wait()
+
+	var err error
+	for i := 0; i < len(errCh); i++ {
+		err = errors.Join(err, <-errCh)
+	}
+
+	return err
+}
+
+func (c *LingvaClient) isStartOfTheChunk(i int) bool {
+	return i != 0 && i%c.BatchRequests == 0
+}
+
+func (c *LingvaClient) waitForPreviousBatch(doneCh <-chan struct{}) {
+	for j := 0; j < c.BatchRequests; j++ {
+		<-doneCh
+	}
+	time.Sleep(c.BatchInterval)
 }
