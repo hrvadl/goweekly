@@ -16,7 +16,6 @@ import (
 const LingvaAPIURL = "https://lingva.ml/api/v1/en/uk/"
 
 type Config struct {
-	URL             string
 	BatchRequests   int
 	Retries         int
 	RetriesInterval time.Duration
@@ -30,7 +29,7 @@ func NewLingvaClient(cfg *Config) *LingvaClient {
 		BatchInterval:   cfg.BatchInterval,
 		Retries:         cfg.Retries,
 		RetriesInterval: cfg.RetriesInterval,
-		url:             cfg.URL,
+		url:             LingvaAPIURL,
 		client: &http.Client{
 			Timeout: cfg.Timeout,
 		},

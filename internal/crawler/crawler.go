@@ -18,6 +18,7 @@ const (
 )
 
 const maxArticlesPerWeek = 15
+const articlesURL = "https://golangweekly.com/issues/latest"
 
 var (
 	hrefAttrName  = []byte("href")
@@ -25,10 +26,10 @@ var (
 	tableClasses  = []byte("el-item item  ")
 )
 
-func New(url string, timeout time.Duration, retries uint) *Crawler {
+func New(timeout time.Duration, retries int) *Crawler {
 
 	return &Crawler{
-		URL:             url,
+		URL:             articlesURL,
 		Retries:         retries,
 		RetriesInterval: time.Second * 15,
 		client: &http.Client{
@@ -38,7 +39,7 @@ func New(url string, timeout time.Duration, retries uint) *Crawler {
 }
 
 type Crawler struct {
-	Retries         uint
+	Retries         int
 	RetriesInterval time.Duration
 	URL             string
 
@@ -188,7 +189,7 @@ func (c *Crawler) getHTMLStream() (io.ReadCloser, error) {
 		return nil, err
 	}
 
-	for i := 0; i < int(c.Retries); i++ {
+	for i := 0; i < c.Retries; i++ {
 		res, err = c.client.Do(req)
 		if err != nil {
 			time.Sleep(c.RetriesInterval)

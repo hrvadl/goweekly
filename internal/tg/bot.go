@@ -18,9 +18,9 @@ const ContentTypeJSON = "application/json"
 const parseMode = "Markdown"
 const daysInWeek = 7
 
-func NewBot(url, token, chatID string) Bot {
+func NewBot(token, chatID string) Bot {
 	return Bot{
-		url:    url + token,
+		url:    URL + token,
 		chatID: chatID,
 	}
 }
@@ -66,7 +66,7 @@ func (b Bot) SendMessage(msg string) error {
 }
 
 func (b Bot) SendMessagesThroughoutWeek(messages []string) {
-	perDay := int(math.Ceil(float64(len(messages)) / daysInWeek))
+	perDay := int(math.Ceil(float64(len(messages)) / (daysInWeek + 1)))
 
 	var wg sync.WaitGroup
 	for idx, msg := range messages {
