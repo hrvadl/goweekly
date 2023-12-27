@@ -33,7 +33,7 @@ func main() {
 	start := time.Now()
 	crawler := crawler.New(articlesURL, articlesTimeout, articlesRetries)
 	bot := tg.NewBot(tg.URL, os.Getenv(tgTokenKey), tgChatID)
-	formatter := formatter.NewMarkdownV2()
+	formatter := formatter.NewMarkdown()
 	translator := translator.NewLingvaClient(&translator.Config{
 		Timeout:         translateTimeout,
 		Retries:         translateRetries,

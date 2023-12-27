@@ -7,14 +7,14 @@ import (
 	"github.com/hrvadl/go-weekly/internal/crawler"
 )
 
-func NewMarkdownV2() *MarkdownV2 {
-	return &MarkdownV2{}
+func NewMarkdown() *Markdown {
+	return &Markdown{}
 }
 
-type MarkdownV2 struct {
+type Markdown struct {
 }
 
-func (v MarkdownV2) FormatArticles(articles []crawler.Article) []string {
+func (v Markdown) FormatArticles(articles []crawler.Article) []string {
 	formatted := make([]string, 0, len(articles))
 	for _, a := range articles {
 		formatted = append(formatted, v.FormatArticle(a))
@@ -22,7 +22,7 @@ func (v MarkdownV2) FormatArticles(articles []crawler.Article) []string {
 	return formatted
 }
 
-func (v MarkdownV2) FormatArticle(a crawler.Article) string {
+func (v Markdown) FormatArticle(a crawler.Article) string {
 	var builder strings.Builder
 	builder.WriteString(v.FormatTitle(a.Header))
 	builder.WriteString(v.FormatContent(a.Content))
@@ -32,18 +32,18 @@ func (v MarkdownV2) FormatArticle(a crawler.Article) string {
 	return builder.String()
 }
 
-func (v MarkdownV2) FormatTitle(title string) string {
+func (v Markdown) FormatTitle(title string) string {
 	return fmt.Sprintf("*%v*\n", title)
 }
 
-func (v MarkdownV2) FormatContent(content string) string {
+func (v Markdown) FormatContent(content string) string {
 	return fmt.Sprintf("\n%v\n", content)
 }
 
-func (v MarkdownV2) FormatAuthor(author string) string {
+func (v Markdown) FormatAuthor(author string) string {
 	return fmt.Sprintf("\nАвтор: *%v*\n", author)
 }
 
-func (v MarkdownV2) FormatURL(url string) string {
+func (v Markdown) FormatURL(url string) string {
 	return fmt.Sprintf("Читати повну статтю: %v\n", url)
 }
