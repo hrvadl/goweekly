@@ -96,21 +96,20 @@ func (c *LingvaClient) Translate(msg string) (string, error) {
 
 func (c *LingvaClient) TranslateArticles(articles []crawler.Article) error {
 	var (
-		wg     sync.WaitGroup
-		errCh  = make(chan error, len(articles))
-		doneCh = make(chan struct{}, c.BatchRequests)
+		wg    sync.WaitGroup
+		errCh = make(chan error, len(articles))
 	)
 
 	for i := 0; i < len(articles); i++ {
 		if c.isStartOfTheChunk(i) {
-			c.waitForPreviousBatch(doneCh)
+			wg.Wait()
+			time.Sleep(c.BatchInterval)
 		}
 
 		wg.Add(1)
 		go func(article *crawler.Article) {
 			defer wg.Done()
 			translated, err := c.Translate(article.Content)
-			doneCh <- struct{}{}
 
 			if err != nil {
 				errCh <- err
@@ -132,11 +131,4 @@ func (c *LingvaClient) TranslateArticles(articles []crawler.Article) error {
 
 func (c *LingvaClient) isStartOfTheChunk(i int) bool {
 	return i != 0 && i%c.BatchRequests == 0
-}
-
-func (c *LingvaClient) waitForPreviousBatch(doneCh <-chan struct{}) {
-	for j := 0; j < c.BatchRequests; j++ {
-		<-doneCh
-	}
-	time.Sleep(c.BatchInterval)
 }
