@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.x"
+      - name: Install dependencies
+        run: make install
+      - name: Run tests
+        run: make test
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+          cache: false
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: v1.54
+          args: --timeout=3m --config=golangci.yaml
+
+  build:
+    needs:
+      - lint
+      - test
+    runs-on: ubuntu-latest
+    # if: ${{ github.event_name == 'push' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21.x"
+      - name: Build binary
+        run: cd cmd/goweekly && go build .
+      - name: Transfer binary to the server
+        uses: appleboy/scp-action@v0.1.6
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD}}
+          source: cmd/goweekly/goweekly
+          target: /home/goweekly/goweekly
+      - name: Stop old & start new process
+        uses: fifsky/ssh-action@master
+        with:
+          command: |
+            pid=$(pgrep -fa goweekly)
+            kill $pid
+          host: ${{ secrets.REMOTE_HOST }}
+          user: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.REMOTE_PASSWORD}}

@@ -68,7 +68,7 @@ func (b Bot) SendMessagesThroughoutWeek(messages []string) {
 	perDay := int(math.Ceil(float64(len(messages)) / (daysInWeek + 1)))
 	for idx, msg := range messages {
 		if b.dayLimitExceeded(idx, perDay) {
-			time.Sleep(time.Minute * 2)
+			time.Sleep(time.Hour * 24)
 		}
 
 		go func(msg string) {
