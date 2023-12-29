@@ -7,7 +7,6 @@ import (
 	"io"
 	"math"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/hrvadl/go-weekly/pkg/logger"
@@ -67,23 +66,17 @@ func (b Bot) SendMessage(msg string) error {
 
 func (b Bot) SendMessagesThroughoutWeek(messages []string) {
 	perDay := int(math.Ceil(float64(len(messages)) / (daysInWeek + 1)))
-
-	var wg sync.WaitGroup
 	for idx, msg := range messages {
 		if b.dayLimitExceeded(idx, perDay) {
-			time.Sleep(time.Hour * 24)
+			time.Sleep(time.Minute * 2)
 		}
 
-		wg.Add(1)
 		go func(msg string) {
-			defer wg.Done()
 			if err := b.SendMessage(msg); err != nil {
 				logger.Errorf("Failed to send message: %v", err)
 			}
 		}(msg)
 	}
-
-	wg.Wait()
 }
 
 func (b Bot) dayLimitExceeded(idx, perDay int) bool {
