@@ -58,11 +58,12 @@ jobs:
           source: cmd/goweekly/goweekly
           target: /home/goweekly/goweekly
       - name: Stop old & start new process
-        uses: fifsky/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.1
         with:
-          command: |
+          script: |
             pid=$(pgrep -fa goweekly)
-            kill $pid
+            if [[ $pid ]]; then kill $pid >> /dev/null; fi
+            /home/goweekly/goweekly
           host: ${{ secrets.REMOTE_HOST }}
-          user: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.REMOTE_PASSWORD}}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD}}
