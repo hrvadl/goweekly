@@ -1,25 +1,41 @@
 package main
 
 import (
-	"fmt"
+	"os"
 	"time"
 
-	"github.com/hrvadl/go-weekly/internal/crawler"
+	"github.com/hrvadl/go-weekly/internal/app"
+	"github.com/hrvadl/go-weekly/pkg/logger"
 )
 
 const (
-	articlesURL = "https://golangweekly.com/issues/latest"
-	retries     = 3
-	timeout     = 30 * time.Second
+	tgTokenKey = "TG_TOKEN"
+	tgChatID   = "@goweeklych"
 )
 
 func main() {
-	crawler := crawler.Must(crawler.New(articlesURL, timeout, retries))
+	app := app.New(app.Config{
+		TranslateBatchRequests: 7,
+		TranslateRetries:       5,
+		TranslateTimeout:       10 * time.Second,
+		TranslateInterval:      10 * time.Second,
+		ArticlesRetries:        3,
+		ArticlesTimeout:        30 * time.Second,
+		TgToken:                os.Getenv(tgTokenKey),
+		TgChatID:               tgChatID,
+	})
+	app.TranslateAndSend()
 
-	articles, err := crawler.ParseArticles()
+	location, err := time.LoadLocation("UTC")
 	if err != nil {
-		fmt.Println(err)
+		logger.Fatalf("Error loading time zone: %v", err)
 	}
 
-	fmt.Println(articles)
+	ticker := time.NewTicker(24 * time.Hour)
+	for range ticker.C {
+		now := time.Now().In(location)
+		if now.Weekday() == time.Wednesday {
+			app.TranslateAndSend()
+		}
+	}
 }

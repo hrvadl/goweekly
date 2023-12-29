@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"sync"
 	"time"
 
@@ -19,6 +18,7 @@ const (
 )
 
 const maxArticlesPerWeek = 15
+const articlesURL = "https://golangweekly.com/issues/latest"
 
 var (
 	hrefAttrName  = []byte("href")
@@ -26,34 +26,22 @@ var (
 	tableClasses  = []byte("el-item item  ")
 )
 
-func Must(c *Crawler, err error) *Crawler {
-	if err != nil {
-		panic(err)
-	}
-
-	return c
-}
-
-func New(rawURL string, timeout time.Duration, retries uint) (*Crawler, error) {
-	url, err := url.Parse(rawURL)
-	if err != nil {
-		return nil, err
-	}
+func New(timeout time.Duration, retries int) *Crawler {
 
 	return &Crawler{
-		URL:             url,
+		URL:             articlesURL,
 		Retries:         retries,
 		RetriesInterval: time.Second * 15,
 		client: &http.Client{
 			Timeout: timeout,
 		},
-	}, nil
+	}
 }
 
 type Crawler struct {
-	Retries         uint
+	Retries         int
 	RetriesInterval time.Duration
-	URL             *url.URL
+	URL             string
 
 	tokenizer *html.Tokenizer
 	client    *http.Client
@@ -196,14 +184,19 @@ func (c *Crawler) getHTMLStream() (io.ReadCloser, error) {
 		res *http.Response
 	)
 
-	req := &http.Request{
-		Method: http.MethodGet,
-		URL:    c.URL,
+	req, err := http.NewRequest(http.MethodGet, c.URL, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	for i := 0; i < int(c.Retries); i++ {
+	for i := 0; i < c.Retries; i++ {
 		res, err = c.client.Do(req)
-		if err != nil || res.StatusCode != http.StatusOK {
+		if err != nil {
+			time.Sleep(c.RetriesInterval)
+			continue
+		}
+
+		if res.StatusCode != http.StatusOK {
 			err = fmt.Errorf("failed to get site HTML, status: %v, err: %w", res.StatusCode, err)
 			time.Sleep(c.RetriesInterval)
 			continue

@@ -2,7 +2,7 @@
 
 ## Quick start 🚀
 
-### Run parser 😬
+### Run app 😬
 
 Make sure you have _make_ tool installed. Then, in the root of the directory run:
 
@@ -15,10 +15,6 @@ As alternative option, you can
 ```bash
 cd cmd/goweekly && go run .
 ```
-
-### Translate the summary with ChatGPT 🤖
-
-_To be done..._
 
 ### Publish in the Telegram channel 📝
 
