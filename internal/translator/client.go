@@ -16,7 +16,6 @@ import (
 const LingvaAPIURL = "https://lingva.ml/api/v1/en/uk/"
 
 type Config struct {
-	URL             string
 	BatchRequests   int
 	Retries         int
 	RetriesInterval time.Duration
@@ -30,7 +29,7 @@ func NewLingvaClient(cfg *Config) *LingvaClient {
 		BatchInterval:   cfg.BatchInterval,
 		Retries:         cfg.Retries,
 		RetriesInterval: cfg.RetriesInterval,
-		url:             cfg.URL,
+		url:             LingvaAPIURL,
 		client: &http.Client{
 			Timeout: cfg.Timeout,
 		},
@@ -66,11 +65,14 @@ func (c *LingvaClient) Translate(msg string) (string, error) {
 	req.Header.Add("Content-Type", "application/json")
 
 	for i := 0; i <= c.Retries; i++ {
-		logger.Info("starting request")
 		res, err = c.client.Do(req)
-		if err != nil || (res != nil && res.StatusCode != http.StatusOK) {
-			logger.Errorf("failed to translate, status: %v, err: %v", res.StatusCode, err)
+		if err != nil {
 			time.Sleep(c.RetriesInterval)
+			continue
+		}
+
+		if res.StatusCode != http.StatusOK {
+			logger.Errorf("failed to translate, status: %v, err: %v", res.StatusCode, err)
 			continue
 		}
 

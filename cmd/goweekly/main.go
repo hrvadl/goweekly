@@ -1,56 +1,41 @@
 package main
 
 import (
+	"os"
 	"time"
 
-	"github.com/hrvadl/go-weekly/internal/crawler"
-	"github.com/hrvadl/go-weekly/internal/translator"
+	"github.com/hrvadl/go-weekly/internal/app"
 	"github.com/hrvadl/go-weekly/pkg/logger"
 )
 
 const (
-	articlesURL     = "https://golangweekly.com/issues/latest"
-	articlesRetries = 3
-	articlesTimeout = 30 * time.Second
-)
-
-const (
-	translateRetries       = 5
-	translateBatchRequests = 7
-	translateInterval      = 10 * time.Second
-	translateTimeout       = 10 * time.Second
+	tgTokenKey = "TG_TOKEN"
+	tgChatID   = "@goweeklych"
 )
 
 func main() {
-	start := time.Now()
-	crawler := crawler.New(articlesURL, articlesTimeout, articlesRetries)
-	translator := translator.NewLingvaClient(&translator.Config{
-		Timeout:         translateTimeout,
-		Retries:         translateRetries,
-		RetriesInterval: translateInterval / 2,
-		BatchRequests:   translateBatchRequests,
-		BatchInterval:   translateInterval,
-		URL:             translator.LingvaAPIURL,
+	app := app.New(app.Config{
+		TranslateBatchRequests: 7,
+		TranslateRetries:       5,
+		TranslateTimeout:       10 * time.Second,
+		TranslateInterval:      10 * time.Second,
+		ArticlesRetries:        3,
+		ArticlesTimeout:        30 * time.Second,
+		TgToken:                os.Getenv(tgTokenKey),
+		TgChatID:               tgChatID,
 	})
+	app.TranslateAndSend()
 
-	articles, err := crawler.ParseArticles()
+	location, err := time.LoadLocation("UTC")
 	if err != nil {
-		logger.Fatalf("Cannot parse articles: %v\n", err)
+		logger.Fatalf("Error loading time zone: %v", err)
 	}
 
-	logger.Infof(
-		"Successfully parsed articles in %v: %v\n",
-		time.Since(start).String(),
-		articles,
-	)
-
-	if err := translator.TranslateArticles(articles); err != nil {
-		logger.Fatalf("Failed to translate articles: %v\n", err)
+	ticker := time.NewTicker(24 * time.Hour)
+	for range ticker.C {
+		now := time.Now().In(location)
+		if now.Weekday() == time.Wednesday {
+			app.TranslateAndSend()
+		}
 	}
-
-	logger.Infof(
-		"Successfully translated articles in %v: %v\n",
-		time.Since(start).String(),
-		articles,
-	)
 }
