@@ -17,6 +17,16 @@ const ContentTypeJSON = "application/json"
 const parseMode = "Markdown"
 const daysInWeek = 7
 
+var daysTillTuesday = map[time.Weekday]float64{
+	time.Monday:    1.0,
+	time.Tuesday:   1.0,
+	time.Wednesday: 6.0,
+	time.Thursday:  5.0,
+	time.Friday:    4.0,
+	time.Saturday:  3.0,
+	time.Sunday:    2.0,
+}
+
 func NewBot(token, chatID string) Bot {
 	return Bot{
 		url:    URL + token,
@@ -65,7 +75,8 @@ func (b Bot) SendMessage(msg string) error {
 }
 
 func (b Bot) SendMessagesThroughoutWeek(messages []string) {
-	perDay := int(math.Ceil(float64(len(messages)) / (daysInWeek + 1)))
+	today := time.Now().Weekday()
+	perDay := int(math.Ceil(float64(len(messages)) / daysTillTuesday[today]))
 	for idx, msg := range messages {
 		if b.dayLimitExceeded(idx, perDay) {
 			time.Sleep(time.Hour * 24)
