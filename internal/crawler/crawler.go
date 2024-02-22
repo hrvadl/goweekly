@@ -26,14 +26,19 @@ var (
 	tableClasses  = []byte("el-item item  ")
 )
 
-func New(timeout time.Duration, retries int) *Crawler {
+type Config struct {
+	Retries int
+	Timeout time.Duration
+}
+
+func New(config Config) *Crawler {
 
 	return &Crawler{
 		URL:             articlesURL,
-		Retries:         retries,
+		Retries:         config.Retries,
 		RetriesInterval: time.Second * 15,
 		client: &http.Client{
-			Timeout: timeout,
+			Timeout: config.Timeout,
 		},
 	}
 }
@@ -53,7 +58,7 @@ Fetches and parses the articles
 Articles is contained in tables with class 'el-item item  '.
 They have same structure regardless of content table > tbody > tr > td > (content)
 */
-func (c *Crawler) ParseArticles() ([]Article, error) {
+func (c *Crawler) GetArticles() ([]Article, error) {
 	siteHTML, err := c.getHTMLStream()
 	if err != nil {
 		return nil, err

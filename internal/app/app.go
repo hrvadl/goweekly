@@ -6,45 +6,42 @@ import (
 	"github.com/hrvadl/go-weekly/internal/crawler"
 	"github.com/hrvadl/go-weekly/internal/tg"
 	"github.com/hrvadl/go-weekly/internal/tg/formatter"
-	"github.com/hrvadl/go-weekly/internal/translator"
 	"github.com/hrvadl/go-weekly/pkg/logger"
 )
 
 type Config struct {
-	TranslateBatchRequests int
-	TranslateRetries       int
-	TranslateTimeout       time.Duration
-	TranslateInterval      time.Duration
-
-	ArticlesRetries int
-	ArticlesTimeout time.Duration
-
 	TgToken  string
 	TgChatID string
 }
 
 func New(cfg Config) *GoWeekly {
-	return &GoWeekly{cfg}
+	return &GoWeekly{
+		cfg,
+		make([]Writer, 0),
+		make([]Redactor, 0),
+	}
 }
 
 type GoWeekly struct {
-	cfg Config
+	cfg       Config
+	writers   []Writer
+	redactors []Redactor
+}
+
+func (o *GoWeekly) AddRedactor(r Redactor) {
+	o.redactors = append(o.redactors, r)
+}
+
+func (o *GoWeekly) AddWriter(w Writer) {
+	o.writers = append(o.writers, w)
 }
 
 func (o GoWeekly) TranslateAndSend() {
 	start := time.Now()
-	crawler := crawler.New(o.cfg.ArticlesTimeout, o.cfg.ArticlesRetries)
 	bot := tg.NewBot(o.cfg.TgToken, o.cfg.TgChatID)
 	formatter := formatter.NewMarkdown()
-	translator := translator.NewLingvaClient(&translator.Config{
-		Timeout:         o.cfg.TranslateTimeout,
-		Retries:         o.cfg.TranslateRetries,
-		RetriesInterval: o.cfg.TranslateInterval / 2,
-		BatchRequests:   o.cfg.TranslateBatchRequests,
-		BatchInterval:   o.cfg.TranslateInterval,
-	})
 
-	articles, err := crawler.ParseArticles()
+	articles, err := o.collectArticles()
 	if err != nil {
 		logger.Fatalf("Cannot parse articles: %v\n", err)
 	}
@@ -55,8 +52,8 @@ func (o GoWeekly) TranslateAndSend() {
 		articles,
 	)
 
-	if err := translator.TranslateArticles(articles); err != nil {
-		logger.Fatalf("Failed to translate articles: %v\n", err)
+	if articles, err = o.processArticles(articles); err != nil {
+		logger.Fatalf("Failed to process articles: %v\n", err)
 	}
 
 	logger.Infof(
@@ -67,4 +64,30 @@ func (o GoWeekly) TranslateAndSend() {
 
 	bot.SendMessagesThroughoutWeek(formatter.FormatArticles(articles))
 	logger.Info("Finished sending all the weekly articles")
+}
+
+func (o GoWeekly) collectArticles() ([]crawler.Article, error) {
+	result := make([]crawler.Article, 0)
+
+	for i := 0; i < len(o.writers); i++ {
+		arts, err := o.writers[i].GetArticles()
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, arts...)
+	}
+
+	return result, nil
+}
+
+func (o GoWeekly) processArticles(articles []crawler.Article) ([]crawler.Article, error) {
+	var err error
+	for i := 0; i < len(o.redactors); i++ {
+		articles, err = o.redactors[i].Review(articles)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return articles, nil
 }

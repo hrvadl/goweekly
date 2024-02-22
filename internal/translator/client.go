@@ -23,7 +23,7 @@ type Config struct {
 	Timeout         time.Duration
 }
 
-func NewLingvaClient(cfg *Config) *LingvaClient {
+func NewLingvaClient(cfg Config) *LingvaClient {
 	return &LingvaClient{
 		BatchRequests:   cfg.BatchRequests,
 		BatchInterval:   cfg.BatchInterval,
@@ -129,6 +129,10 @@ func (c *LingvaClient) TranslateArticles(articles []crawler.Article) error {
 	}
 
 	return err
+}
+
+func (c *LingvaClient) Review(articles []crawler.Article) ([]crawler.Article, error) {
+	return articles, c.TranslateArticles(articles)
 }
 
 func (c *LingvaClient) isStartOfTheChunk(i int) bool {
