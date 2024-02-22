@@ -24,6 +24,20 @@ type Config struct {
 	TgChatID string
 }
 
+func NewWithDefaults(token, chatID string) *GoWeekly {
+	cfg := Config{
+		TranslateBatchRequests: 7,
+		TranslateRetries:       5,
+		TranslateTimeout:       10 * time.Second,
+		TranslateInterval:      10 * time.Second,
+		ArticlesRetries:        3,
+		ArticlesTimeout:        30 * time.Second,
+		TgToken:                token,
+		TgChatID:               chatID,
+	}
+	return &GoWeekly{cfg}
+}
+
 func New(cfg Config) *GoWeekly {
 	return &GoWeekly{cfg}
 }

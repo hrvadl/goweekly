@@ -14,16 +14,7 @@ const (
 )
 
 func main() {
-	app := app.New(app.Config{
-		TranslateBatchRequests: 7,
-		TranslateRetries:       5,
-		TranslateTimeout:       10 * time.Second,
-		TranslateInterval:      10 * time.Second,
-		ArticlesRetries:        3,
-		ArticlesTimeout:        30 * time.Second,
-		TgToken:                os.Getenv(tgTokenKey),
-		TgChatID:               tgChatID,
-	})
+	app := app.NewWithDefaults(os.Getenv(tgTokenKey), tgChatID)
 	app.TranslateAndSend()
 
 	location, err := time.LoadLocation("UTC")
