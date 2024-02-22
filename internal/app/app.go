@@ -3,12 +3,17 @@ package app
 import (
 	"time"
 
+	"github.com/hrvadl/go-weekly/internal/adapter"
 	"github.com/hrvadl/go-weekly/internal/crawler"
 	"github.com/hrvadl/go-weekly/internal/tg"
 	"github.com/hrvadl/go-weekly/internal/tg/formatter"
 	"github.com/hrvadl/go-weekly/internal/translator"
 	"github.com/hrvadl/go-weekly/pkg/logger"
 )
+
+type WeeklySender interface {
+	SendWeeklyMessages(messages []string)
+}
 
 type Config struct {
 	TranslateBatchRequests int
@@ -34,8 +39,12 @@ type GoWeekly struct {
 func (o GoWeekly) TranslateAndSend() {
 	start := time.Now()
 	crawler := crawler.New(o.cfg.ArticlesTimeout, o.cfg.ArticlesRetries)
-	bot := tg.NewBot(o.cfg.TgToken, o.cfg.TgChatID)
-	formatter := formatter.NewMarkdown()
+	fmt := formatter.NewMarkdown()
+	bot := tg.NewBot(tg.BotConfig{
+		ParseMode: formatter.MarkdownType,
+		Token:     o.cfg.TgToken,
+		ChatID:    o.cfg.TgChatID,
+	})
 	translator := translator.NewLingvaClient(&translator.Config{
 		Timeout:         o.cfg.TranslateTimeout,
 		Retries:         o.cfg.TranslateRetries,
@@ -65,6 +74,8 @@ func (o GoWeekly) TranslateAndSend() {
 		articles,
 	)
 
-	bot.SendMessagesThroughoutWeek(formatter.FormatArticles(articles))
+	msgAdapter := adapter.NewArticle(articles, fmt)
+	messages := msgAdapter.ToMessages()
+	bot.SendWeeklyMessages(messages)
 	logger.Info("Finished sending all the weekly articles")
 }

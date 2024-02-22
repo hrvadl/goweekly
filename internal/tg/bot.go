@@ -12,21 +12,30 @@ import (
 	"github.com/hrvadl/go-weekly/pkg/logger"
 )
 
-const URL = "https://api.telegram.org/bot"
-const ContentTypeJSON = "application/json"
-const parseMode = "Markdown"
-const daysInWeek = 7
+const (
+	URL             = "https://api.telegram.org/bot"
+	ContentTypeJSON = "application/json"
+	daysInWeek      = 7
+)
 
-func NewBot(token, chatID string) Bot {
+type BotConfig struct {
+	Token     string
+	ChatID    string
+	ParseMode string
+}
+
+func NewBot(cfg BotConfig) Bot {
 	return Bot{
-		url:    URL + token,
-		chatID: chatID,
+		url:       URL + cfg.Token,
+		chatID:    cfg.ChatID,
+		parseMode: cfg.ParseMode,
 	}
 }
 
 type Bot struct {
-	url    string
-	chatID string
+	url       string
+	chatID    string
+	parseMode string
 }
 
 type MessagePayload struct {
@@ -39,9 +48,8 @@ func (b Bot) SendMessage(msg string) error {
 	body, err := json.Marshal(MessagePayload{
 		Message:   msg,
 		ChatID:    b.chatID,
-		ParseMode: parseMode,
+		ParseMode: b.parseMode,
 	})
-
 	if err != nil {
 		return err
 	}
@@ -64,7 +72,7 @@ func (b Bot) SendMessage(msg string) error {
 	return nil
 }
 
-func (b Bot) SendMessagesThroughoutWeek(messages []string) {
+func (b Bot) SendWeeklyMessages(messages []string) {
 	perDay := int(math.Ceil(float64(len(messages)) / (daysInWeek + 1)))
 	for idx, msg := range messages {
 		if b.dayLimitExceeded(idx, perDay) {

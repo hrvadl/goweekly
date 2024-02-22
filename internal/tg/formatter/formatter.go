@@ -7,12 +7,13 @@ import (
 	"github.com/hrvadl/go-weekly/internal/crawler"
 )
 
+const MarkdownType = "Markdown"
+
 func NewMarkdown() *Markdown {
 	return &Markdown{}
 }
 
-type Markdown struct {
-}
+type Markdown struct{}
 
 func (v Markdown) FormatArticles(articles []crawler.Article) []string {
 	formatted := make([]string, 0, len(articles))
@@ -20,6 +21,10 @@ func (v Markdown) FormatArticles(articles []crawler.Article) []string {
 		formatted = append(formatted, v.FormatArticle(a))
 	}
 	return formatted
+}
+
+func (v Markdown) FormatType() string {
+	return MarkdownType
 }
 
 func (v Markdown) FormatArticle(a crawler.Article) string {
