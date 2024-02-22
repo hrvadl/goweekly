@@ -8,22 +8,28 @@ type ArticleFormatter interface {
 	FormatArticle(a crawler.Article) string
 }
 
-func NewArticle(articles []crawler.Article, fmt ArticleFormatter) *Adapter {
+type WeeklySender interface {
+	SendWeekly(messages []string)
+}
+
+func NewArticleSender(snd WeeklySender, fmt ArticleFormatter) *Adapter {
 	return &Adapter{
-		articles:  articles,
 		formatter: fmt,
+		sender:    snd,
 	}
 }
 
 type Adapter struct {
 	articles  []crawler.Article
 	formatter ArticleFormatter
+	sender    WeeklySender
 }
 
-func (a *Adapter) ToMessages() []string {
+func (a *Adapter) SendWeekly(articles []crawler.Article) {
 	msg := make([]string, 0, len(a.articles))
-	for _, ar := range a.articles {
-		msg = append(msg, a.formatter.FormatArticle(ar))
+	for _, article := range articles {
+		msg = append(msg, a.formatter.FormatArticle(article))
 	}
-	return msg
+
+	a.sender.SendWeekly(msg)
 }

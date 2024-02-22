@@ -15,14 +15,6 @@ func NewMarkdown() *Markdown {
 
 type Markdown struct{}
 
-func (v Markdown) FormatArticles(articles []crawler.Article) []string {
-	formatted := make([]string, 0, len(articles))
-	for _, a := range articles {
-		formatted = append(formatted, v.FormatArticle(a))
-	}
-	return formatted
-}
-
 func (v Markdown) FormatType() string {
 	return MarkdownType
 }

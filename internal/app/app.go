@@ -11,10 +11,6 @@ import (
 	"github.com/hrvadl/go-weekly/pkg/logger"
 )
 
-type WeeklySender interface {
-	SendWeeklyMessages(messages []string)
-}
-
 type Config struct {
 	TranslateBatchRequests int
 	TranslateRetries       int
@@ -74,8 +70,7 @@ func (o GoWeekly) TranslateAndSend() {
 		articles,
 	)
 
-	msgAdapter := adapter.NewArticle(articles, fmt)
-	messages := msgAdapter.ToMessages()
-	bot.SendWeeklyMessages(messages)
+	adp := adapter.NewArticleSender(bot, fmt)
+	adp.SendWeekly(articles)
 	logger.Info("Finished sending all the weekly articles")
 }
