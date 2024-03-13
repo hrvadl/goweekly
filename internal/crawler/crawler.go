@@ -17,8 +17,10 @@ const (
 	linkTag  = "a"
 )
 
-const maxArticlesPerWeek = 15
-const articlesURL = "https://golangweekly.com/issues/latest"
+const (
+	maxArticlesPerWeek = 15
+	articlesURL        = "https://golangweekly.com/issues/latest"
+)
 
 var (
 	hrefAttrName  = []byte("href")
@@ -27,7 +29,6 @@ var (
 )
 
 func New(timeout time.Duration, retries int) *Crawler {
-
 	return &Crawler{
 		URL:             articlesURL,
 		Retries:         retries,
@@ -123,30 +124,47 @@ Parses tokens from the tokenizer
 Tokenizer's cursor should already be on <table> element
 Exits on the EOF exception or on the closing </table> element
 */
+// nolint
 func (c *Crawler) getArticleFromStream() (*Article, error) {
 	once := sync.Once{}
-	tokens := make([]string, 0, 5)
+	tokens := make([]string, 2, 5)
 
+	var isParsingTitle bool
 	for c.tokenizer.Err() == nil {
 		switch c.tokenizer.Next() {
 		case html.StartTagToken:
-			tagName, _ := c.tokenizer.TagName()
-			if string(tagName) == linkTag {
+			tagRaw, _ := c.tokenizer.TagName()
+			tagName := string(tagRaw)
+			if tagName == linkTag {
+				isParsingTitle = true
 				once.Do(func() {
-					tokens = append(tokens, string(c.getTokensAttr(hrefAttrName)))
+					tokens[urlTokenIdx] = string(c.getTokensAttr(hrefAttrName))
 				})
 			}
 
 		case html.EndTagToken:
-			tagName, _ := c.tokenizer.TagName()
-			if string(tagName) == tableTag {
+			tagRaw, _ := c.tokenizer.TagName()
+			tagName := string(tagRaw)
+			if tagName == linkTag {
+				isParsingTitle = false
+			}
+
+			if tagName == tableTag {
 				return newArticleFromTextTokens(tokens)
 			}
 
 		case html.TextToken:
-			if text := bytes.TrimSpace(c.tokenizer.Text()); len(text) > 0 {
-				tokens = append(tokens, string(text))
+			rawText := bytes.TrimSpace(c.tokenizer.Text())
+			if len(rawText) <= 0 {
+				continue
 			}
+
+			if isParsingTitle {
+				tokens[headerTokenIdx] += " " + string(rawText)
+				continue
+			}
+
+			tokens = append(tokens, string(rawText))
 		}
 	}
 
