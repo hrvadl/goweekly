@@ -66,7 +66,7 @@ func (b Bot) SendMessage(msg string) error {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("sending message failed with status %v: %v", res.StatusCode, resp)
+		return fmt.Errorf("sending message failed with status %v: %v", res.StatusCode, string(resp))
 	}
 
 	return nil
