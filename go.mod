@@ -1,5 +1,3 @@
-module github.com/hrvadl/go-weekly
+module github.com/hrvadl/goweekly
 
-go 1.21
-
-require golang.org/x/net v0.19.0
+go 1.22.0

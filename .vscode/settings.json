@@ -1,5 +1,0 @@
-{
-  "go.lintTool": "golangci-lint",
-  "go.lintFlags": ["--config", "golangci.yaml"],
-  "go.lintOnSave": "workspace"
-}

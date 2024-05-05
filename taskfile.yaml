@@ -1,0 +1,12 @@
+version: "3"
+
+includes:
+depl:
+  taskfile: ./protogs/taskfile.yaml
+  dir: ./protos
+
+tasks:
+  default:
+    desc: "Show available tasks"
+    cmds:
+      - task --list-all

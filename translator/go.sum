@@ -1,0 +1,4 @@
+github.com/hrvadl/go-weekly v0.0.0-20240320105450-fef445f5ac81 h1:6jOtX20T83d25Xf7m6fZWmHo/ULgGcIGVk5ggEAOvSQ=
+github.com/hrvadl/go-weekly v0.0.0-20240320105450-fef445f5ac81/go.mod h1:yxc0wxlZKtCm/jcGdqlCk4svWN0GeTt0D14nlud6h2Q=
+golang.org/x/net v0.19.0 h1:zTwKpTd2XuCqf8huc7Fo2iSy+4RHPd10s4KzeTnVr1c=
+golang.org/x/net v0.19.0/go.mod h1:CfAk/cbD4CthTvqiEl8NpboMuiuOYsAr/7NOjZJtv1U=

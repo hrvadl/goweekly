@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package translator.v1;
+
+option go_package = "github.com/hrvadl/protos/v1/translator";
+
+service TranslateService {
+  rpc Translate(stream TranslateRequest) returns (stream TranslateResponse);
+}
+
+message TranslateRequest {
+  string url = 1;
+  string header = 2;
+  string content = 3;
+  string author = 4;
+  bool is_sponsored = 5;
+}
+
+message TranslateResponse {
+  string url = 1;
+  string header = 2;
+  string content = 3;
+  string author = 4;
+  bool is_sponsored = 5;
+}

@@ -5,8 +5,10 @@ import (
 	"strings"
 )
 
-const minTokens = 4
-const sponsorLabel = "sponsor"
+const (
+	minTokens    = 4
+	sponsorLabel = "sponsor"
+)
 
 const (
 	urlTokenIdx = iota
