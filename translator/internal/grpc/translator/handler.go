@@ -2,17 +2,16 @@ package translator
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"io"
+	"log/slog"
 
 	pb "github.com/hrvadl/goweekly/protos/gen/go/v1/translator"
 	"google.golang.org/grpc"
 )
 
-func Register(srv *grpc.Server, t Translator) {
+func Register(srv *grpc.Server, t Translator, l *slog.Logger) {
 	pb.RegisterTranslateServiceServer(srv, &server{
 		translator: t,
+		log:        l,
 	})
 }
 
@@ -23,56 +22,19 @@ type Translator interface {
 type server struct {
 	pb.UnimplementedTranslateServiceServer
 	translator Translator
+	log        *slog.Logger
 }
 
-func (srv *server) Translate(s pb.TranslateService_TranslateServer) error {
-	ctx := s.Context()
-	doneCh := make(chan struct{})
-	errCh := make(chan error)
-
-	go srv.handleStream(s, doneCh, errCh)
-
-	select {
-	case <-ctx.Done():
-		return errors.New("timeout exceeded")
-	case err := <-errCh:
-		return fmt.Errorf("failed to translate articles: %w", err)
-	case <-doneCh:
-		return nil
+func (srv *server) Translate(
+	ctx context.Context,
+	req *pb.TranslateRequest,
+) (*pb.TranslateResponse, error) {
+	srv.log.Debug("incoming request")
+	msg, err := srv.translator.Translate(ctx, req.Message)
+	if err != nil {
+		srv.log.Error("failed to transalte msg", "err", err)
+		return nil, err
 	}
-}
 
-func (srv *server) handleStream(
-	s pb.TranslateService_TranslateServer,
-	doneCh chan<- struct{},
-	errCh chan<- error,
-) {
-	ctx := s.Context()
-	breakCh := make(chan struct{})
-
-loop:
-	for {
-		msg, err := s.Recv()
-		if errors.Is(err, io.EOF) {
-			doneCh <- struct{}{}
-			return
-		}
-
-		select {
-		case <-breakCh:
-			break loop
-		default:
-			go func() {
-				msg, err := srv.translator.Translate(ctx, msg.Message)
-				if err != nil {
-					breakCh <- struct{}{}
-					errCh <- err
-				}
-				if err := s.Send(&pb.TranslateRequest{Message: msg}); err != nil {
-					breakCh <- struct{}{}
-					errCh <- err
-				}
-			}()
-		}
-	}
+	return &pb.TranslateResponse{Message: msg}, nil
 }

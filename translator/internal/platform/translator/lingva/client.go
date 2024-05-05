@@ -5,31 +5,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"time"
 )
 
-const LingvaAPIURL = "https://lingva.ml/api/v1/en/uk/"
+const LingvaAPIURL = "https://lingva.lunar.icu/api/v1/en/uk/"
 
 type Config struct {
-	BatchRequests   int
 	Retries         int
 	RetriesInterval time.Duration
-	BatchInterval   time.Duration
-	Timeout         time.Duration
+	Logger          *slog.Logger
 }
 
 func NewClient(cfg *Config) *Client {
 	return &Client{
-		BatchRequests:   cfg.BatchRequests,
-		BatchInterval:   cfg.BatchInterval,
-		Retries:         cfg.Retries,
-		RetriesInterval: cfg.RetriesInterval,
+		retries:         cfg.Retries,
+		retriesInterval: cfg.RetriesInterval,
+		client:          http.DefaultClient,
 		url:             LingvaAPIURL,
-		client: &http.Client{
-			Timeout: cfg.Timeout,
-		},
+		log:             cfg.Logger,
 	}
 }
 
@@ -38,13 +34,11 @@ type LingvaResponse struct {
 }
 
 type Client struct {
-	BatchRequests   int
-	Retries         int
-	RetriesInterval time.Duration
-	BatchInterval   time.Duration
-
-	client *http.Client
-	url    string
+	retries         int
+	retriesInterval time.Duration
+	log             *slog.Logger
+	client          *http.Client
+	url             string
 }
 
 func (c *Client) Translate(ctx context.Context, msg string) (string, error) {
@@ -60,12 +54,13 @@ func (c *Client) Translate(ctx context.Context, msg string) (string, error) {
 
 	req.Header.Add("Content-Type", "application/json")
 
-	for i := 0; i <= c.Retries; i++ {
+	for i := 0; i <= c.retries; i++ {
 		res, err = c.translate(req)
 		if err == nil {
 			return res, nil
 		}
-		time.Sleep(c.RetriesInterval)
+		c.log.Error("Request failed, waiting for retry...", slog.Any("err", err))
+		time.Sleep(c.retriesInterval)
 	}
 
 	return "", err

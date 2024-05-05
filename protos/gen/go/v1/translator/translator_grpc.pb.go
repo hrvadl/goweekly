@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TranslateServiceClient interface {
-	Translate(ctx context.Context, opts ...grpc.CallOption) (TranslateService_TranslateClient, error)
+	Translate(ctx context.Context, in *TranslateRequest, opts ...grpc.CallOption) (*TranslateResponse, error)
 }
 
 type translateServiceClient struct {
@@ -33,42 +33,20 @@ func NewTranslateServiceClient(cc grpc.ClientConnInterface) TranslateServiceClie
 	return &translateServiceClient{cc}
 }
 
-func (c *translateServiceClient) Translate(ctx context.Context, opts ...grpc.CallOption) (TranslateService_TranslateClient, error) {
-	stream, err := c.cc.NewStream(ctx, &TranslateService_ServiceDesc.Streams[0], "/translator.v1.TranslateService/Translate", opts...)
+func (c *translateServiceClient) Translate(ctx context.Context, in *TranslateRequest, opts ...grpc.CallOption) (*TranslateResponse, error) {
+	out := new(TranslateResponse)
+	err := c.cc.Invoke(ctx, "/translator.v1.TranslateService/Translate", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &translateServiceTranslateClient{stream}
-	return x, nil
-}
-
-type TranslateService_TranslateClient interface {
-	Send(*TranslateRequest) error
-	Recv() (*TranslateRequest, error)
-	grpc.ClientStream
-}
-
-type translateServiceTranslateClient struct {
-	grpc.ClientStream
-}
-
-func (x *translateServiceTranslateClient) Send(m *TranslateRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *translateServiceTranslateClient) Recv() (*TranslateRequest, error) {
-	m := new(TranslateRequest)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 // TranslateServiceServer is the server API for TranslateService service.
 // All implementations must embed UnimplementedTranslateServiceServer
 // for forward compatibility
 type TranslateServiceServer interface {
-	Translate(TranslateService_TranslateServer) error
+	Translate(context.Context, *TranslateRequest) (*TranslateResponse, error)
 	mustEmbedUnimplementedTranslateServiceServer()
 }
 
@@ -76,8 +54,8 @@ type TranslateServiceServer interface {
 type UnimplementedTranslateServiceServer struct {
 }
 
-func (UnimplementedTranslateServiceServer) Translate(TranslateService_TranslateServer) error {
-	return status.Errorf(codes.Unimplemented, "method Translate not implemented")
+func (UnimplementedTranslateServiceServer) Translate(context.Context, *TranslateRequest) (*TranslateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Translate not implemented")
 }
 func (UnimplementedTranslateServiceServer) mustEmbedUnimplementedTranslateServiceServer() {}
 
@@ -92,30 +70,22 @@ func RegisterTranslateServiceServer(s grpc.ServiceRegistrar, srv TranslateServic
 	s.RegisterService(&TranslateService_ServiceDesc, srv)
 }
 
-func _TranslateService_Translate_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(TranslateServiceServer).Translate(&translateServiceTranslateServer{stream})
-}
-
-type TranslateService_TranslateServer interface {
-	Send(*TranslateRequest) error
-	Recv() (*TranslateRequest, error)
-	grpc.ServerStream
-}
-
-type translateServiceTranslateServer struct {
-	grpc.ServerStream
-}
-
-func (x *translateServiceTranslateServer) Send(m *TranslateRequest) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *translateServiceTranslateServer) Recv() (*TranslateRequest, error) {
-	m := new(TranslateRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _TranslateService_Translate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TranslateRequest)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
+	if interceptor == nil {
+		return srv.(TranslateServiceServer).Translate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/translator.v1.TranslateService/Translate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TranslateServiceServer).Translate(ctx, req.(*TranslateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 // TranslateService_ServiceDesc is the grpc.ServiceDesc for TranslateService service.
@@ -124,14 +94,12 @@ func (x *translateServiceTranslateServer) Recv() (*TranslateRequest, error) {
 var TranslateService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "translator.v1.TranslateService",
 	HandlerType: (*TranslateServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams: []grpc.StreamDesc{
+	Methods: []grpc.MethodDesc{
 		{
-			StreamName:    "Translate",
-			Handler:       _TranslateService_Translate_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
+			MethodName: "Translate",
+			Handler:    _TranslateService_Translate_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "v1/translator/translator.proto",
 }

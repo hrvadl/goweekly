@@ -11,6 +11,4 @@ service SenderService {
 
 message SendRequest {
   string message = 1;
-  string chat_id = 2;
-  string parse_mode = 3;
 }

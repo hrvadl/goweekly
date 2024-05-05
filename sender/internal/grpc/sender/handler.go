@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 
 	pb "github.com/hrvadl/goweekly/protos/gen/go/v1/sender"
 	"golang.org/x/net/context"
@@ -12,9 +13,10 @@ import (
 	"github.com/hrvadl/goweekly/sender/internal/platform/sender"
 )
 
-func Register(gRPC *grpc.Server, s Sender) {
+func Register(gRPC *grpc.Server, s Sender, l *slog.Logger) {
 	pb.RegisterSenderServiceServer(gRPC, &server{
 		sender: s,
+		log:    l,
 	})
 }
 
@@ -25,9 +27,11 @@ type Sender interface {
 type server struct {
 	pb.UnimplementedSenderServiceServer
 	sender Sender
+	log    *slog.Logger
 }
 
 func (srv *server) Send(s pb.SenderService_SendServer) error {
+	srv.log.Info("Got a send streaming request")
 	doneCh := make(chan struct{})
 	errCh := make(chan error)
 	ctx := s.Context()
@@ -68,9 +72,7 @@ loop:
 		default:
 			go func() {
 				err = srv.sender.Send(ctx, sender.Message{
-					Message:   msg.Message,
-					ChatID:    msg.ChatId,
-					ParseMode: msg.ParseMode,
+					Message: msg.Message,
 				})
 				if err != nil {
 					breakCh <- struct{}{}

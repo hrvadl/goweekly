@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"log/slog"
 	"net"
 	"time"
 
@@ -15,22 +16,22 @@ import (
 type App struct {
 	cfg        cfg.Config
 	gRPCServer *grpc.Server
+	log        *slog.Logger
 }
 
-func New(cfg cfg.Config) *App {
+func New(cfg cfg.Config, log *slog.Logger) *App {
 	lingva := lingva.NewClient(&lingva.Config{
-		BatchRequests:   7,
 		Retries:         5,
-		Timeout:         10 * time.Second,
 		RetriesInterval: 10 * time.Second,
-		BatchInterval:   10 * time.Second,
+		Logger:          log,
 	})
 	srv := grpc.NewServer()
-	translator.Register(srv, lingva)
+	translator.Register(srv, lingva, log)
 
 	return &App{
 		cfg:        cfg,
 		gRPCServer: srv,
+		log:        log,
 	}
 }
 
@@ -46,6 +47,7 @@ func (a *App) Run() error {
 		return err
 	}
 
+	a.log.Info("Starting translator service", slog.String("port", a.cfg.Port))
 	if err := a.gRPCServer.Serve(l); err != nil {
 		return fmt.Errorf("failed to server grpc translator server: %w", err)
 	}

@@ -25,6 +25,12 @@ func NewBot(token, chatID, parseMode string) Bot {
 	}
 }
 
+type MessagePayload struct {
+	Message   string `json:"text"`
+	ChatID    string `json:"chat_id"`
+	ParseMode string `json:"parse_mode"`
+}
+
 type Bot struct {
 	url       string
 	chatID    string
@@ -32,48 +38,33 @@ type Bot struct {
 }
 
 func (b Bot) Send(ctx context.Context, msg sender.Message) error {
-	errCh := make(chan error)
-	doneCh := make(chan struct{})
-
-	go func() {
-		body, err := json.Marshal(msg)
-		if err != nil {
-			errCh <- err
-			return
-		}
-
-		res, err := http.Post(b.url+"/sendMessage", ContentTypeJSON, bytes.NewBuffer(body))
-		if err != nil {
-			errCh <- err
-			return
-		}
-
-		defer res.Body.Close()
-		resp, err := io.ReadAll(res.Body)
-		if err != nil {
-			errCh <- err
-			return
-		}
-
-		if res.StatusCode != http.StatusOK {
-			err := fmt.Errorf(
-				"sending message failed with status %v: %v",
-				res.StatusCode,
-				string(resp),
-			)
-			errCh <- err
-			return
-		}
-
-		doneCh <- struct{}{}
-	}()
-
-	select {
-	case <-ctx.Done():
-		return fmt.Errorf("timeout exceeded")
-	case err := <-errCh:
-		return fmt.Errorf("failed to send tg message: %w", err)
-	case <-doneCh:
-		return nil
+	body, err := json.Marshal(MessagePayload{
+		Message:   msg.Message,
+		ChatID:    b.chatID,
+		ParseMode: b.parseMode,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to construct request body: %w", err)
 	}
+
+	res, err := http.Post(b.url+"/sendMessage", ContentTypeJSON, bytes.NewBuffer(body))
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+
+	defer res.Body.Close()
+	resp, err := io.ReadAll(res.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read body: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf(
+			"sending message failed with status %v: %v",
+			res.StatusCode,
+			string(resp),
+		)
+	}
+
+	return nil
 }

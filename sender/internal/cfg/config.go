@@ -33,17 +33,17 @@ func New() (*Config, error) {
 	}
 
 	chatID := os.Getenv(ChatIDKey)
-	if token == "" {
+	if chatID == "" {
 		return nil, errors.New("chatID can not be empty")
 	}
 
 	parseMode := os.Getenv(ParseModeKey)
-	if token == "" {
+	if parseMode == "" {
 		return nil, errors.New("parse mode can not be empty")
 	}
 
 	port := os.Getenv(PortKey)
-	if token == "" {
+	if port == "" {
 		return nil, errors.New("port can not be empty")
 	}
 

@@ -5,7 +5,7 @@ package translator.v1;
 option go_package = "github.com/hrvadl/protos/v1/translator";
 
 service TranslateService {
-  rpc Translate(stream TranslateRequest) returns (stream TranslateRequest);
+  rpc Translate(TranslateRequest) returns (TranslateResponse);
 }
 
 message TranslateRequest {

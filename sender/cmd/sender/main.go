@@ -15,7 +15,7 @@ func main() {
 	cfg := *cfg.Must(cfg.New())
 	l.Info("Successfuly parsed the configuration")
 
-	app := app.New(cfg)
+	app := app.New(cfg, l)
 	app.MustRun()
 }
 
