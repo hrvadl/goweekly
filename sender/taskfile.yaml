@@ -1,3 +1,12 @@
 version: "3"
 
 tasks:
+  run:
+    required:
+      vars:
+        - SENDER_CHAT_ID
+        - SENDER_PARSE_MODE
+        - SENDER_PORT
+        - SENDER_TG_TOKEN
+    cmds:
+      - go run ./cmd/sender
