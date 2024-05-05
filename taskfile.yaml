@@ -1,9 +1,18 @@
 version: "3"
 
 includes:
-depl:
-  taskfile: ./protogs/taskfile.yaml
-  dir: ./protos
+  protos:
+    taskfile: ./protos/taskfile.yaml
+    dir: ./protos
+  crawler:
+    taskfile: ./crawler/taskfile.yaml
+    dir: ./crawler
+  sender:
+    taskfile: ./sender/taskfile.yaml
+    dir: ./sender
+  translator:
+    taskfile: ./translator/taskfile.yaml
+    dir: ./translator
 
 tasks:
   default:
