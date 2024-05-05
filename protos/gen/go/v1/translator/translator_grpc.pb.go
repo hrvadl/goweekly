@@ -44,7 +44,7 @@ func (c *translateServiceClient) Translate(ctx context.Context, opts ...grpc.Cal
 
 type TranslateService_TranslateClient interface {
 	Send(*TranslateRequest) error
-	Recv() (*TranslateResponse, error)
+	Recv() (*TranslateRequest, error)
 	grpc.ClientStream
 }
 
@@ -56,8 +56,8 @@ func (x *translateServiceTranslateClient) Send(m *TranslateRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *translateServiceTranslateClient) Recv() (*TranslateResponse, error) {
-	m := new(TranslateResponse)
+func (x *translateServiceTranslateClient) Recv() (*TranslateRequest, error) {
+	m := new(TranslateRequest)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func _TranslateService_Translate_Handler(srv interface{}, stream grpc.ServerStre
 }
 
 type TranslateService_TranslateServer interface {
-	Send(*TranslateResponse) error
+	Send(*TranslateRequest) error
 	Recv() (*TranslateRequest, error)
 	grpc.ServerStream
 }
@@ -106,7 +106,7 @@ type translateServiceTranslateServer struct {
 	grpc.ServerStream
 }
 
-func (x *translateServiceTranslateServer) Send(m *TranslateResponse) error {
+func (x *translateServiceTranslateServer) Send(m *TranslateRequest) error {
 	return x.ServerStream.SendMsg(m)
 }
 

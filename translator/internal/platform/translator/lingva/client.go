@@ -1,16 +1,13 @@
 package lingva
 
 import (
+	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	"sync"
 	"time"
-
-	"github.com/hrvadl/go-weekly/internal/crawler"
-	"github.com/hrvadl/go-weekly/pkg/logger"
 )
 
 const LingvaAPIURL = "https://lingva.ml/api/v1/en/uk/"
@@ -23,8 +20,8 @@ type Config struct {
 	Timeout         time.Duration
 }
 
-func NewLingvaClient(cfg *Config) *LingvaClient {
-	return &LingvaClient{
+func NewClient(cfg *Config) *Client {
+	return &Client{
 		BatchRequests:   cfg.BatchRequests,
 		BatchInterval:   cfg.BatchInterval,
 		Retries:         cfg.Retries,
@@ -40,7 +37,7 @@ type LingvaResponse struct {
 	Translation string `json:"translation"`
 }
 
-type LingvaClient struct {
+type Client struct {
 	BatchRequests   int
 	Retries         int
 	RetriesInterval time.Duration
@@ -50,14 +47,13 @@ type LingvaClient struct {
 	url    string
 }
 
-func (c *LingvaClient) Translate(msg string) (string, error) {
+func (c *Client) Translate(ctx context.Context, msg string) (string, error) {
 	var (
-		err  error
-		res  *http.Response
-		body []byte
+		err error
+		res string
 	)
 
-	req, err := http.NewRequest(http.MethodGet, c.url+url.QueryEscape(msg), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.url+url.QueryEscape(msg), nil)
 	if err != nil {
 		return "", err
 	}
@@ -65,71 +61,37 @@ func (c *LingvaClient) Translate(msg string) (string, error) {
 	req.Header.Add("Content-Type", "application/json")
 
 	for i := 0; i <= c.Retries; i++ {
-		res, err = c.client.Do(req)
-		if err != nil {
-			time.Sleep(c.RetriesInterval)
-			continue
+		res, err = c.translate(req)
+		if err == nil {
+			return res, nil
 		}
-
-		if res.StatusCode != http.StatusOK {
-			logger.Errorf("failed to translate, status: %v, err: %v", res.StatusCode, err)
-			continue
-		}
-
-		defer res.Body.Close()
-		body, err = io.ReadAll(res.Body)
-		if err != nil {
-			time.Sleep(c.RetriesInterval)
-			continue
-		}
-
-		var result LingvaResponse
-		if err = json.Unmarshal(body, &result); err != nil {
-			time.Sleep(c.RetriesInterval)
-			continue
-		}
-
-		s, _ := url.QueryUnescape(result.Translation)
-		return s, nil
+		time.Sleep(c.RetriesInterval)
 	}
 
 	return "", err
 }
 
-func (c *LingvaClient) TranslateArticles(articles []crawler.Article) error {
-	var (
-		wg    sync.WaitGroup
-		errCh = make(chan error, len(articles))
-	)
-
-	for i := 0; i < len(articles); i++ {
-		if c.isStartOfTheChunk(i) {
-			wg.Wait()
-			time.Sleep(c.BatchInterval)
-		}
-
-		wg.Add(1)
-		go func(article *crawler.Article) {
-			defer wg.Done()
-			translated, err := c.Translate(article.Content)
-			if err != nil {
-				errCh <- err
-			}
-
-			article.Content = translated
-		}(&articles[i])
+func (c *Client) translate(req *http.Request) (string, error) {
+	res, err := c.client.Do(req)
+	if err != nil {
+		return "", err
 	}
 
-	wg.Wait()
-
-	var err error
-	for i := 0; i < len(errCh); i++ {
-		err = errors.Join(err, <-errCh)
+	if res.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to translate, status: %d", res.StatusCode)
 	}
 
-	return err
-}
+	defer res.Body.Close()
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read translate response body: %w", err)
+	}
 
-func (c *LingvaClient) isStartOfTheChunk(i int) bool {
-	return i != 0 && i%c.BatchRequests == 0
+	var result LingvaResponse
+	if err = json.Unmarshal(body, &result); err != nil {
+		return "", fmt.Errorf("failed to parse translate response body: %w", err)
+	}
+
+	s, _ := url.QueryUnescape(result.Translation)
+	return s, nil
 }

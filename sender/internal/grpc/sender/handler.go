@@ -28,25 +28,55 @@ type server struct {
 }
 
 func (srv *server) Send(s pb.SenderService_SendServer) error {
+	doneCh := make(chan struct{})
+	errCh := make(chan error)
 	ctx := s.Context()
+
+	go srv.handleStream(s, doneCh, errCh)
+
 	for {
 		select {
 		case <-ctx.Done():
 			return fmt.Errorf("time out reached")
-		default:
-			msg, err := s.Recv()
-			if errors.Is(err, io.EOF) {
-				return nil
-			}
+		case err := <-errCh:
+			return fmt.Errorf("failed to send msg: %w", err)
+		case <-doneCh:
+			return nil
+		}
+	}
+}
 
-			err = srv.sender.Send(ctx, sender.Message{
-				Message:   msg.Message,
-				ChatID:    msg.ChatId,
-				ParseMode: msg.ParseMode,
-			})
-			if err != nil {
-				return err
-			}
+func (srv *server) handleStream(
+	s pb.SenderService_SendServer,
+	doneCh chan<- struct{},
+	errCh chan<- error,
+) {
+	breakCh := make(chan struct{})
+	ctx := s.Context()
+
+loop:
+	for {
+		msg, err := s.Recv()
+		if errors.Is(err, io.EOF) {
+			doneCh <- struct{}{}
+			return
+		}
+
+		select {
+		case <-breakCh:
+			break loop
+		default:
+			go func() {
+				err = srv.sender.Send(ctx, sender.Message{
+					Message:   msg.Message,
+					ChatID:    msg.ChatId,
+					ParseMode: msg.ParseMode,
+				})
+				if err != nil {
+					breakCh <- struct{}{}
+					errCh <- err
+				}
+			}()
 		}
 	}
 }
