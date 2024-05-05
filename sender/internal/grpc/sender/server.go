@@ -5,29 +5,29 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/hrvadl/goweeky/protos/gen/go/v1/sender"
+	pb "github.com/hrvadl/goweekly/protos/gen/go/v1/sender"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	"github.com/hrvadl/goweeky/sender/internal/platform"
+	"github.com/hrvadl/goweekly/sender/internal/platform/sender"
 )
 
 func Register(gRPC *grpc.Server, s Sender) {
-	sender.RegisterSenderServiceServer(gRPC, &server{
+	pb.RegisterSenderServiceServer(gRPC, &server{
 		sender: s,
 	})
 }
 
 type Sender interface {
-	Send(ctx context.Context, msg platform.Message) error
+	Send(ctx context.Context, msg sender.Message) error
 }
 
 type server struct {
-	sender.UnimplementedSenderServiceServer
+	pb.UnimplementedSenderServiceServer
 	sender Sender
 }
 
-func (srv *server) Send(s sender.SenderService_SendServer) error {
+func (srv *server) Send(s pb.SenderService_SendServer) error {
 	ctx := s.Context()
 	for {
 		select {
@@ -39,7 +39,7 @@ func (srv *server) Send(s sender.SenderService_SendServer) error {
 				return nil
 			}
 
-			err = srv.sender.Send(ctx, platform.Message{
+			err = srv.sender.Send(ctx, sender.Message{
 				Message:   msg.Message,
 				ChatID:    msg.ChatId,
 				ParseMode: msg.ParseMode,

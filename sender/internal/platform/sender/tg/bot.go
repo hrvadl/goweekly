@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/hrvadl/goweeky/sender/internal/platform"
+	"github.com/hrvadl/goweekly/sender/internal/platform/sender"
 )
 
 const (
@@ -31,7 +31,7 @@ type Bot struct {
 	parseMode string
 }
 
-func (b Bot) Send(ctx context.Context, msg platform.Message) error {
+func (b Bot) Send(ctx context.Context, msg sender.Message) error {
 	errCh := make(chan error)
 	doneCh := make(chan struct{})
 

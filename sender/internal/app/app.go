@@ -6,9 +6,9 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/hrvadl/goweeky/sender/internal/cfg"
-	"github.com/hrvadl/goweeky/sender/internal/grpc/sender"
-	"github.com/hrvadl/goweeky/sender/internal/platform/tg"
+	"github.com/hrvadl/goweekly/sender/internal/cfg"
+	"github.com/hrvadl/goweekly/sender/internal/grpc/sender"
+	"github.com/hrvadl/goweekly/sender/internal/platform/sender/tg"
 )
 
 type App struct {

@@ -1,4 +1,4 @@
-module github.com/hrvadl/goweeky/crawler
+module github.com/hrvadl/goweekly/crawler
 
 go 1.22.0
 

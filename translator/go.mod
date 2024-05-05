@@ -1,4 +1,4 @@
-module github.com/hrvadl/goweeky/translator
+module github.com/hrvadl/goweekly/translator
 
 go 1.22.0
 

@@ -1,4 +1,4 @@
-package translator
+package lingva
 
 import (
 	"encoding/json"
@@ -112,7 +112,6 @@ func (c *LingvaClient) TranslateArticles(articles []crawler.Article) error {
 		go func(article *crawler.Article) {
 			defer wg.Done()
 			translated, err := c.Translate(article.Content)
-
 			if err != nil {
 				errCh <- err
 			}

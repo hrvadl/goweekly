@@ -1,4 +1,4 @@
-module github.com/hrvadl/goweeky/protos
+module github.com/hrvadl/goweekly/protos
 
 go 1.22.0
 

@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/hrvadl/goweeky/sender/internal/app"
-	"github.com/hrvadl/goweeky/sender/internal/cfg"
+	"github.com/hrvadl/goweekly/sender/internal/app"
+	"github.com/hrvadl/goweekly/sender/internal/cfg"
 )
 
 func main() {

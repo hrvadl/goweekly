@@ -1,4 +1,4 @@
-module github.com/hrvadl/goweeky/sender
+module github.com/hrvadl/goweekly/sender
 
 go 1.22.0
 
