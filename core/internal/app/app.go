@@ -5,12 +5,12 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/hrvadl/goweekly/core/intenal/cfg"
-	"github.com/hrvadl/goweekly/core/intenal/clients/grpc/sender"
-	"github.com/hrvadl/goweekly/core/intenal/clients/grpc/translator"
-	"github.com/hrvadl/goweekly/core/intenal/clients/rabbitmq/article"
-	"github.com/hrvadl/goweekly/core/intenal/platform/formatter"
-	"github.com/hrvadl/goweekly/core/intenal/processor"
+	"github.com/hrvadl/goweekly/core/internal/cfg"
+	"github.com/hrvadl/goweekly/core/internal/clients/grpc/sender"
+	"github.com/hrvadl/goweekly/core/internal/clients/grpc/translator"
+	"github.com/hrvadl/goweekly/core/internal/clients/rabbitmq/article"
+	"github.com/hrvadl/goweekly/core/internal/platform/formatter"
+	"github.com/hrvadl/goweekly/core/internal/processor"
 )
 
 type App struct {

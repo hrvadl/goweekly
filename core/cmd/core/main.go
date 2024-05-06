@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/hrvadl/goweekly/core/intenal/app"
-	"github.com/hrvadl/goweekly/core/intenal/cfg"
+	"github.com/hrvadl/goweekly/core/internal/app"
+	"github.com/hrvadl/goweekly/core/internal/cfg"
 )
 
 func main() {

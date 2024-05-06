@@ -3,7 +3,7 @@ module github.com/hrvadl/goweekly/core
 go 1.22.0
 
 require (
-	github.com/hrvadl/goweekly/protos v0.0.0-20240506105347-7136ea05724a // indirect
+	github.com/hrvadl/goweekly/protos v0.0.0-20240506120100-a07792a22566 // indirect
 	github.com/rabbitmq/amqp091-go v1.9.0 // indirect
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect

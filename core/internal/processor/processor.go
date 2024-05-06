@@ -6,7 +6,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/hrvadl/goweekly/core/intenal/clients/rabbitmq/article"
+	"github.com/hrvadl/goweekly/core/internal/clients/rabbitmq/article"
 )
 
 type Translator interface {

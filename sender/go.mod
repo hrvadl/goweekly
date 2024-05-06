@@ -5,7 +5,7 @@ go 1.22.0
 require github.com/hrvadl/go-weekly v0.0.0-20240320105450-fef445f5ac81
 
 require (
-	github.com/hrvadl/goweekly/protos v0.0.0-20240506105347-7136ea05724a // indirect
+	github.com/hrvadl/goweekly/protos v0.0.0-20240506120100-a07792a22566 // indirect
 	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect

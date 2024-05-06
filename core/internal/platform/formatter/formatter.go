@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hrvadl/goweekly/core/intenal/clients/rabbitmq/article"
+	"github.com/hrvadl/goweekly/core/internal/clients/rabbitmq/article"
 )
 
 const MarkdownType = "Markdown"
