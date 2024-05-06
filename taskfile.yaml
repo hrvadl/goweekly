@@ -1,0 +1,21 @@
+version: "3"
+
+includes:
+  protos:
+    taskfile: ./protos/taskfile.yaml
+    dir: ./protos
+  crawler:
+    taskfile: ./crawler/taskfile.yaml
+    dir: ./crawler
+  sender:
+    taskfile: ./sender/taskfile.yaml
+    dir: ./sender
+  translator:
+    taskfile: ./translator/taskfile.yaml
+    dir: ./translator
+
+tasks:
+  default:
+    desc: "Show available tasks"
+    cmds:
+      - task --list-all

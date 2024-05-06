@@ -1,0 +1,27 @@
+version: "3"
+
+tasks:
+  generate:
+    cmds:
+      - task: generate:translator
+      - task: generate:sender
+
+  generate:translator:
+    aliases: [gen:translator]
+    cmds:
+      - |
+        protoc -I proto proto/v1/translator/translator.proto \
+        --go_out=./gen/go \
+        --go-grpc_out=./gen/go \
+        --go_opt=paths=source_relative \
+        --go-grpc_opt=paths=source_relative
+
+  generate:sender:
+    aliases: [gen:sender]
+    cmds:
+      - |
+        protoc -I proto proto/v1/sender/sender.proto \
+        --go_out=./gen/go \
+        --go-grpc_out=./gen/go \
+        --go_opt=paths=source_relative \
+        --go-grpc_opt=paths=source_relative

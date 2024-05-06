@@ -1,0 +1,87 @@
+services:
+  redis:
+    image: redis:latest
+    restart: always
+    ports: ["6379:6379"]
+    volumes:
+      - redis-data:/root/redis
+      - redis-data:/usr/local/etc/redis/redis.conf
+    env_file:
+      - .env
+    networks:
+      - goweekly
+
+  translator:
+    build:
+      context: translator
+      dockerfile: ./Dockerfile
+    image: translator
+    restart: on-failure
+    ports: ["4001:${TRANSLATOR_PORT}"]
+    env_file:
+      - .env
+    networks:
+      - goweekly
+
+  sender:
+    build:
+      context: sender
+      dockerfile: ./Dockerfile
+    image: sender
+    restart: on-failure
+    ports: ["4000:${SENDER_PORT}"]
+    env_file:
+      - .env
+    networks:
+      - goweekly
+
+  core:
+    build:
+      context: core
+      dockerfile: ./Dockerfile
+    image: core
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    env_file:
+      - .env
+    networks:
+      - goweekly
+
+  crawler:
+    build:
+      context: crawler
+      dockerfile: ./Dockerfile
+    image: crawler
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    env_file:
+      - .env
+    networks:
+      - goweekly
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    hostname: rabbitmq
+    restart: always
+    healthcheck:
+      # https://www.rabbitmq.com/monitoring.html#health-checks
+      test: rabbitmq-diagnostics -q ping
+    env_file:
+      - .env
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "15672:${RABBITMQ_MANAGEMENT_PORT_NUMBER}"
+      - "5672:${RABBITMQ_NODE_PORT_NUMBER}"
+    networks:
+      - goweekly
+
+volumes:
+  redis-data:
+  rabbitmq-data:
+
+networks:
+  goweekly:
+    driver: bridge

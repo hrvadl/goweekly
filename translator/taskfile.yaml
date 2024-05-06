@@ -1,0 +1,9 @@
+version: "3"
+
+tasks:
+  run:
+    required:
+      vars:
+        - TRANSLATOR_PORT
+    cmds:
+      - go run ./cmd/translator
