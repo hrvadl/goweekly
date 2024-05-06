@@ -4,21 +4,20 @@
 
 ### Run app 😬
 
-Make sure you have _make_ tool installed. Then, in the root of the directory run:
+Make sure you have docker & docker compose tools installed. Then, copy contents of `.env.example` to `.env` and populate it with values. Finally, in the root of the directory run:
 
 ```bash
-make
+docker compose up
 ```
 
-As alternative option, you can
+## Architecture
 
-```bash
-cd cmd/goweekly && go run .
-```
+App consists of 4 microservices:
 
-### Publish in the Telegram channel 📝
-
-_To be done..._
+1. Crawler - is responsible for obtaining articles and publishing them to the RabbitMQ. Should be run as a cron/scheduled job (to be done).
+2. Core - core service, responsible for listening to RabbitMQ queue and calling other services.
+3. Translator - service, used for translation. Uses lingva under the hood.
+4. Sender - service, used to distribute translated messages to Telegram channel.
 
 ## Local software development 👷🏻
 
@@ -34,12 +33,6 @@ Now, you must install [golangci-lint](https://golangci-lint.run/) and include it
 
 Congrats, now pre-commit will run before your commits.
 Also, in case you're using VSCode linting on save should be integrated into your editor.
-
-**Run linters manually**
-
-```bash
-make lint
-```
 
 ## What's the purpose? 🥸
 

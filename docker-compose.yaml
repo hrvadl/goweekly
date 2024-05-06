@@ -1,16 +1,4 @@
 services:
-  redis:
-    image: redis:latest
-    restart: always
-    ports: ["6379:6379"]
-    volumes:
-      - redis-data:/root/redis
-      - redis-data:/usr/local/etc/redis/redis.conf
-    env_file:
-      - .env
-    networks:
-      - goweekly
-
   translator:
     build:
       context: translator
@@ -79,7 +67,6 @@ services:
       - goweekly
 
 volumes:
-  redis-data:
   rabbitmq-data:
 
 networks:
