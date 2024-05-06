@@ -17,11 +17,11 @@ const (
 )
 
 type Article struct {
-	URL         string
-	Header      string
-	Content     string
-	Author      string
-	IsSponsored bool
+	URL         string `json:"url,omitempty"`
+	Header      string `json:"header,omitempty"`
+	Content     string `json:"content,omitempty"`
+	Author      string `json:"author,omitempty"`
+	IsSponsored bool   `json:"isSponsored,omitempty"`
 }
 
 /*

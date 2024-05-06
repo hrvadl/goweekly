@@ -42,6 +42,8 @@ type Client struct {
 }
 
 func (c *Client) Translate(ctx context.Context, msg string) (string, error) {
+	c.log.Info("Got translate message request", "msg", msg)
+
 	var (
 		err error
 		res string

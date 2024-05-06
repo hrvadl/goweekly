@@ -29,7 +29,7 @@ func (srv *server) Translate(
 	ctx context.Context,
 	req *pb.TranslateRequest,
 ) (*pb.TranslateResponse, error) {
-	srv.log.Debug("incoming request")
+	srv.log.Debug("incoming request", "req", req)
 	msg, err := srv.translator.Translate(ctx, req.Message)
 	if err != nil {
 		srv.log.Error("failed to transalte msg", "err", err)

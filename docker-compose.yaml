@@ -35,12 +35,27 @@ services:
     networks:
       - goweekly
 
+  core:
+    build:
+      context: core
+      dockerfile: ./Dockerfile
+    image: core
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    env_file:
+      - .env
+    networks:
+      - goweekly
+
   crawler:
     build:
       context: crawler
       dockerfile: ./Dockerfile
     image: crawler
     restart: on-failure
+    depends_on:
+      - rabbitmq
     env_file:
       - .env
     networks:

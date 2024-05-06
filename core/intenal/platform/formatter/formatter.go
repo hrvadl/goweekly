@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hrvadl/goweekly/crawler/internal/crawler"
+	"github.com/hrvadl/goweekly/core/intenal/clients/rabbitmq/article"
 )
 
 const MarkdownType = "Markdown"
@@ -19,7 +19,7 @@ func (v Markdown) FormatType() string {
 	return MarkdownType
 }
 
-func (v Markdown) FormatArticle(a crawler.Article) string {
+func (v Markdown) FormatArticle(a article.Article) string {
 	var builder strings.Builder
 	builder.WriteString(v.FormatTitle(a.Header))
 	builder.WriteString(v.FormatContent(a.Content))

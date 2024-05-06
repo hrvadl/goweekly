@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	l := setupLogger().With(slog.Int("pid", os.Getpid()), slog.String("source", "sender"))
+	l := setupLogger().With(slog.Int("pid", os.Getpid()), slog.String("source", "translator"))
 	l.Info("Starting the application...")
 
 	cfg := *cfg.Must(cfg.New())
