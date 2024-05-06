@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   redis:
     image: redis:latest
@@ -48,8 +46,26 @@ services:
     networks:
       - goweekly
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    hostname: rabbitmq
+    restart: always
+    healthcheck:
+      # https://www.rabbitmq.com/monitoring.html#health-checks
+      test: rabbitmq-diagnostics -q ping
+    env_file:
+      - .env
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "15672:${RABBITMQ_MANAGEMENT_PORT_NUMBER}"
+      - "5672:${RABBITMQ_NODE_PORT_NUMBER}"
+    networks:
+      - goweekly
+
 volumes:
   redis-data:
+  rabbitmq-data:
 
 networks:
   goweekly:
