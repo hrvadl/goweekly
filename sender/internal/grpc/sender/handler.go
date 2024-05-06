@@ -1,9 +1,6 @@
 package sender
 
 import (
-	"errors"
-	"fmt"
-	"io"
 	"log/slog"
 
 	pb "github.com/hrvadl/goweekly/protos/gen/go/v1/sender"
@@ -37,49 +34,7 @@ type server struct {
 	msgch  chan *pb.SendRequest
 }
 
-func (srv *server) Send(s pb.SenderService_SendServer) error {
-	srv.log.Info("Got a send streaming request")
-	ctx := s.Context()
-
-	go srv.receive(s)
-	go srv.send(ctx)
-
-	for {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case err := <-srv.errch:
-			return fmt.Errorf("failed to send msg: %w", err)
-		case <-srv.donech:
-			s.SendAndClose(&emptypb.Empty{})
-			return nil
-		}
-	}
-}
-
-func (srv *server) receive(s pb.SenderService_SendServer) {
-	for {
-		msg, err := s.Recv()
-		if errors.Is(err, io.EOF) {
-			srv.donech <- struct{}{}
-			return
-		}
-
-		if err != nil {
-			srv.errch <- err
-			return
-		}
-
-		srv.msgch <- msg
-	}
-}
-
-func (srv *server) send(ctx context.Context) {
-	for msg := range srv.msgch {
-		srv.log.Debug("sending message...", "msg", msg.Message)
-		if err := srv.sender.Send(ctx, sender.Message{Message: msg.Message}); err != nil {
-			srv.errch <- fmt.Errorf("failed to send a message: %w", err)
-			return
-		}
-	}
+func (srv *server) Send(ctx context.Context, s *pb.SendRequest) (*emptypb.Empty, error) {
+	err := srv.sender.Send(ctx, sender.Message{Message: s.Message})
+	return &emptypb.Empty{}, err
 }

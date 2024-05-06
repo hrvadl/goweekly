@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SenderServiceClient interface {
-	Send(ctx context.Context, opts ...grpc.CallOption) (SenderService_SendClient, error)
+	Send(ctx context.Context, in *SendRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type senderServiceClient struct {
@@ -34,45 +34,20 @@ func NewSenderServiceClient(cc grpc.ClientConnInterface) SenderServiceClient {
 	return &senderServiceClient{cc}
 }
 
-func (c *senderServiceClient) Send(ctx context.Context, opts ...grpc.CallOption) (SenderService_SendClient, error) {
-	stream, err := c.cc.NewStream(ctx, &SenderService_ServiceDesc.Streams[0], "/sender.v1.SenderService/Send", opts...)
+func (c *senderServiceClient) Send(ctx context.Context, in *SendRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/sender.v1.SenderService/Send", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &senderServiceSendClient{stream}
-	return x, nil
-}
-
-type SenderService_SendClient interface {
-	Send(*SendRequest) error
-	CloseAndRecv() (*emptypb.Empty, error)
-	grpc.ClientStream
-}
-
-type senderServiceSendClient struct {
-	grpc.ClientStream
-}
-
-func (x *senderServiceSendClient) Send(m *SendRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *senderServiceSendClient) CloseAndRecv() (*emptypb.Empty, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(emptypb.Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 // SenderServiceServer is the server API for SenderService service.
 // All implementations must embed UnimplementedSenderServiceServer
 // for forward compatibility
 type SenderServiceServer interface {
-	Send(SenderService_SendServer) error
+	Send(context.Context, *SendRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedSenderServiceServer()
 }
 
@@ -80,8 +55,8 @@ type SenderServiceServer interface {
 type UnimplementedSenderServiceServer struct {
 }
 
-func (UnimplementedSenderServiceServer) Send(SenderService_SendServer) error {
-	return status.Errorf(codes.Unimplemented, "method Send not implemented")
+func (UnimplementedSenderServiceServer) Send(context.Context, *SendRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Send not implemented")
 }
 func (UnimplementedSenderServiceServer) mustEmbedUnimplementedSenderServiceServer() {}
 
@@ -96,30 +71,22 @@ func RegisterSenderServiceServer(s grpc.ServiceRegistrar, srv SenderServiceServe
 	s.RegisterService(&SenderService_ServiceDesc, srv)
 }
 
-func _SenderService_Send_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(SenderServiceServer).Send(&senderServiceSendServer{stream})
-}
-
-type SenderService_SendServer interface {
-	SendAndClose(*emptypb.Empty) error
-	Recv() (*SendRequest, error)
-	grpc.ServerStream
-}
-
-type senderServiceSendServer struct {
-	grpc.ServerStream
-}
-
-func (x *senderServiceSendServer) SendAndClose(m *emptypb.Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *senderServiceSendServer) Recv() (*SendRequest, error) {
-	m := new(SendRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _SenderService_Send_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendRequest)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
+	if interceptor == nil {
+		return srv.(SenderServiceServer).Send(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/sender.v1.SenderService/Send",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SenderServiceServer).Send(ctx, req.(*SendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 // SenderService_ServiceDesc is the grpc.ServiceDesc for SenderService service.
@@ -128,13 +95,12 @@ func (x *senderServiceSendServer) Recv() (*SendRequest, error) {
 var SenderService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "sender.v1.SenderService",
 	HandlerType: (*SenderServiceServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams: []grpc.StreamDesc{
+	Methods: []grpc.MethodDesc{
 		{
-			StreamName:    "Send",
-			Handler:       _SenderService_Send_Handler,
-			ClientStreams: true,
+			MethodName: "Send",
+			Handler:    _SenderService_Send_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "v1/sender/sender.proto",
 }

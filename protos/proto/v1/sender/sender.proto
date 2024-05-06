@@ -6,7 +6,7 @@ import "google/protobuf/empty.proto";
 option go_package = "github.com/hrvadl/protos/v1/sender";
 
 service SenderService {
-  rpc Send(stream SendRequest) returns (google.protobuf.Empty);
+  rpc Send(SendRequest) returns (google.protobuf.Empty);
 }
 
 message SendRequest {
