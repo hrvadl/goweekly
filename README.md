@@ -46,3 +46,11 @@ Also, I'd like to contribute to the Ukrainian golang community and make summarie
 
 - [Alex 🤓](https://github.com/oleksandrcherevkov)
 - [Vadym 💅🏻](https://github.com/hrvadl)
+
+## TODO
+
+1. Run Crawler as a Cron job in Kubernetes
+2. Add grpc logger & other useful interceptors
+3. Add Helm chart?
+4. Deploy it somewhere?
+5. Add graceful shutdowns
