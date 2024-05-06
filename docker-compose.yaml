@@ -1,0 +1,56 @@
+version: "3"
+
+services:
+  redis:
+    image: redis:latest
+    restart: always
+    ports: ["6379:6379"]
+    volumes:
+      - redis-data:/root/redis
+      - redis-data:/usr/local/etc/redis/redis.conf
+    env_file:
+      - .env
+    networks:
+      - goweekly
+
+  translator:
+    build:
+      context: translator
+      dockerfile: ./Dockerfile
+    image: translator
+    restart: on-failure
+    ports: ["4001:${TRANSLATOR_PORT}"]
+    env_file:
+      - .env
+    networks:
+      - goweekly
+
+  sender:
+    build:
+      context: sender
+      dockerfile: ./Dockerfile
+    image: sender
+    restart: on-failure
+    ports: ["4000:${SENDER_PORT}"]
+    env_file:
+      - .env
+    networks:
+      - goweekly
+
+  crawler:
+    build:
+      context: crawler
+      dockerfile: ./Dockerfile
+    image: crawler
+    restart: on-failure
+    env_file:
+      - .env
+    networks:
+      - goweekly
+
+volumes:
+  redis-data:
+
+networks:
+  goweekly:
+    driver: bridge

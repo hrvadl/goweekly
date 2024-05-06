@@ -68,7 +68,7 @@ func (a *App) Run() error {
 		return err
 	}
 
-	a.log.Debug("Parsed articles", "articles", articles)
+	a.log.Info("Parsed articles", "articles", articles)
 
 	for i, article := range articles {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
