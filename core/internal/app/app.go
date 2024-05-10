@@ -14,10 +14,9 @@ import (
 )
 
 type App struct {
-	consumer  *article.Consumer
-	processor *processor.Processor
-	log       *slog.Logger
-	cfg       cfg.Config
+	consumer *article.Consumer
+	log      *slog.Logger
+	cfg      cfg.Config
 }
 
 func Must(a *App, err error) *App {
@@ -28,8 +27,6 @@ func Must(a *App, err error) *App {
 }
 
 func New(cfg cfg.Config, log *slog.Logger) (*App, error) {
-	consumer := article.NewConsumer(log)
-	consumer.Connect(cfg.RabbitMQAddr)
 	fmter := formatter.NewMarkdown()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -50,10 +47,12 @@ func New(cfg cfg.Config, log *slog.Logger) (*App, error) {
 		return nil, err
 	}
 
+	consumer := article.NewConsumer(log, processor.New(fmter, sender, translator))
+	consumer.Connect(cfg.RabbitMQAddr)
+
 	return &App{
-		consumer:  consumer,
-		processor: processor.New(fmter, sender, translator),
-		cfg:       cfg,
+		consumer: consumer,
+		cfg:      cfg,
 	}, nil
 }
 
@@ -66,7 +65,7 @@ func (a *App) MustRun() {
 func (a *App) Run() error {
 	block := make(chan struct{})
 	a.consumer.Connect(a.cfg.RabbitMQAddr)
-	if err := a.consumer.Consume(a.processor); err != nil {
+	if err := a.consumer.Consume(); err != nil {
 		return err
 	}
 	defer a.consumer.Close()

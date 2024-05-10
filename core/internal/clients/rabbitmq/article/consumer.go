@@ -21,16 +21,22 @@ type Config struct {
 	Addr string
 }
 
-func NewConsumer(log *slog.Logger) *Consumer {
+func NewConsumer(log *slog.Logger, processor ArticleProccessor) *Consumer {
 	return &Consumer{
-		log: log,
+		log:       log,
+		processor: processor,
 	}
 }
 
+type ArticleProccessor interface {
+	Process(msg Article) error
+}
+
 type Consumer struct {
-	conn *amqp091.Connection
-	ch   *amqp091.Channel
-	log  *slog.Logger
+	conn      *amqp091.Connection
+	ch        *amqp091.Channel
+	log       *slog.Logger
+	processor ArticleProccessor
 }
 
 func (c *Consumer) Connect(addr string) error {
@@ -59,11 +65,7 @@ func (c *Consumer) Close() error {
 	return closeConnErr
 }
 
-type ArticleProccessor interface {
-	Process(msg Article) error
-}
-
-func (c *Consumer) Consume(p ArticleProccessor) error {
+func (c *Consumer) Consume() error {
 	q, err := c.ch.QueueDeclare(
 		"articles",
 		true,
@@ -99,7 +101,7 @@ func (c *Consumer) Consume(p ArticleProccessor) error {
 					return err
 				}
 				c.log.Info("Got article from q", "article", article)
-				return p.Process(article)
+				return c.processor.Process(article)
 			})
 		}
 	}()
