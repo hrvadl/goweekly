@@ -47,11 +47,8 @@ func New(cfg cfg.Config, log *slog.Logger) (*App, error) {
 		return nil, err
 	}
 
-	consumer := article.NewConsumer(log, processor.New(fmter, sender, translator))
-	consumer.Connect(cfg.RabbitMQAddr)
-
 	return &App{
-		consumer: consumer,
+		consumer: article.NewConsumer(log, processor.New(fmter, sender, translator)),
 		cfg:      cfg,
 	}, nil
 }
@@ -63,13 +60,14 @@ func (a *App) MustRun() {
 }
 
 func (a *App) Run() error {
-	block := make(chan struct{})
-	a.consumer.Connect(a.cfg.RabbitMQAddr)
-	if err := a.consumer.Consume(); err != nil {
+	if err := a.consumer.Connect(a.cfg.RabbitMQAddr); err != nil {
 		return err
 	}
 	defer a.consumer.Close()
 
-	<-block
+	if err := a.consumer.Consume(); err != nil {
+		return err
+	}
+
 	return nil
 }

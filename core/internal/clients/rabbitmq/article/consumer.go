@@ -92,20 +92,21 @@ func (c *Consumer) Consume() error {
 		return err
 	}
 
-	g := new(errgroup.Group)
-	go func() {
-		for d := range msgs {
-			g.Go(func() error {
-				var article Article
-				if err := json.Unmarshal(d.Body, &article); err != nil {
-					c.log.Error("Failed to unmarshall message's body", "err", err)
-					return err
-				}
-				c.log.Info("Got article from q", "article", article)
-				return c.processor.Process(article)
-			})
-		}
-	}()
+	return c.processUpdates(msgs)
+}
 
-	return nil
+func (c *Consumer) processUpdates(msg <-chan amqp091.Delivery) error {
+	g := new(errgroup.Group)
+	for d := range msg {
+		g.Go(func() error {
+			var article Article
+			if err := json.Unmarshal(d.Body, &article); err != nil {
+				c.log.Error("Failed to unmarshall message's body", "err", err)
+				return err
+			}
+			c.log.Info("Got article from q", "article", article)
+			return c.processor.Process(article)
+		})
+	}
+	return g.Wait()
 }
