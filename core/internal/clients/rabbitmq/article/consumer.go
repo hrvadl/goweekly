@@ -28,6 +28,7 @@ func NewConsumer(log *slog.Logger, processor ArticleProccessor) *Consumer {
 	}
 }
 
+//go:generate mockgen -destination=./mocks/mock_processor.go -package=mocks -source ./consumer.go ArticleProccessor
 type ArticleProccessor interface {
 	Process(msg Article) error
 }

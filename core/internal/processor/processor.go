@@ -9,14 +9,17 @@ import (
 	"github.com/hrvadl/goweekly/core/internal/clients/rabbitmq/article"
 )
 
+//go:generate mockgen -destination=./mocks/mock_translator.go -package=mocks -source ./processor.go Translator
 type Translator interface {
 	Translate(ctx context.Context, msg string) (string, error)
 }
 
+//go:generate mockgen -destination=./mocks/mock_sender.go -package=mocks -source ./processor.go Sender
 type Sender interface {
 	Send(ctx context.Context, msg string) error
 }
 
+//go:generate mockgen -destination=./mocks/mock_formatter.go -package=mocks -source ./processor.go ArticleFormatter
 type ArticleFormatter interface {
 	FormatArticle(a article.Article) string
 }
