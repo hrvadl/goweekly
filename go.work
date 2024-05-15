@@ -6,4 +6,5 @@ use (
 	./sender
 	./translator
 	./protos
+	core
 )
